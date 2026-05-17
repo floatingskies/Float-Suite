@@ -3,16 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>THESIS.WEB - Academic Suite</title>
+<title>THESIS.WEB v3.0 - Academic Suite</title>
   <link rel="icon" type="image/png" href="/favicons/favicon_thesis.png">
 
 <meta name="theme-color" content="#FFDE59">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+// Auto Dark/Light Mode — runs before body renders
+(function(){
+  var mode=localStorage.getItem('thesis_theme_mode')||'auto';
+  var isDark=false;
+  if(mode==='dark')isDark=true;
+  else if(mode==='light')isDark=false;
+  else isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if(isDark)document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  window._thesisThemeMode=mode;
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(e){
+    if(localStorage.getItem('thesis_theme_mode')==='auto'||!localStorage.getItem('thesis_theme_mode')){
+      if(e.matches)document.documentElement.setAttribute('data-theme','dark');
+      else document.documentElement.removeAttribute('data-theme');
+      updateThemeIcon();
+    }
+  });
+  function updateThemeIcon(){
+    var icon=document.getElementById('theme-icon');
+    if(!icon)return;
+    var m=localStorage.getItem('thesis_theme_mode')||'auto';
+    icon.className=m==='auto'?'fas fa-circle-half-stroke':m==='dark'?'fas fa-moon':'fas fa-sun';
+  }
+  document.addEventListener('DOMContentLoaded',updateThemeIcon);
+})();
+</script>
 <style>
 /* ====================================
-   NEO-BRUTALIST THESIS.WEB v2.0
+   NEO-BRUTALIST THESIS.WEB v3.0
    ==================================== */
 :root {
   --c-bg: #e8e4dc;
@@ -346,11 +373,12 @@ header{
   font-family:Arial,sans-serif;
 }
 #cover-page.visible{display:flex;}
+#cover-page.pdf-hide{display:none!important;}
 
 /* Editor Area */
 #editor-area{
-  min-height:230mm;outline:none;
-  padding:3cm 3cm;color:#000;
+  min-height:297mm;outline:none;
+  padding:3cm 3cm;color:#000;background:#fff;
   font-family:Arial,sans-serif;font-size:12pt;line-height:1.5;
   text-align:justify;word-wrap:break-word;white-space:pre-wrap;
 }
@@ -390,7 +418,7 @@ header{
 #editor-area th{background:#f0f0f0;font-weight:bold;text-align:center;}
 #editor-area td,#editor-area th{border:1px solid #000;padding:6px 10px;}
 #editor-area blockquote{margin:16px 4cm;font-size:10pt;text-align:justify;}
-#editor-area .page-break{border-top:2px dashed #ccc;margin:20px 0;text-align:center;}
+#editor-area .page-break{page-break-after:always;border-top:2px dashed #ccc;margin:20px 0;padding:6px 0;text-align:center;background:#fff;}
 #editor-area figcaption{font-size:10pt;text-align:center;margin-top:6px;font-style:italic;}
 #editor-area figure{margin:12px 0;text-align:center;}
 #editor-area a{color:#0066cc;text-decoration:underline;}
@@ -588,12 +616,13 @@ kbd{
 /* Print */
 @media print{
   body{background:#fff;height:auto;overflow:visible;display:block;}
-  header,#sidebar,footer,.modal-overlay,#toast-container,.zoom-controls,.zen-exit,.find-bar{display:none!important;}
+  header,#sidebar,footer,.modal-overlay,#toast-container,.zoom-controls,.zen-exit,.find-bar,.zoom-controls{display:none!important;}
   #workspace{padding:0;background:#fff;display:block;overflow:visible;}
-  #paper{box-shadow:none;margin:0;width:100%;border:none;}
-  #editor-area{min-height:auto;}
+  #paper{box-shadow:none;margin:0;width:100%;border:none;overflow:visible;}
+  #editor-area{min-height:auto;background:#fff;}
+  #cover-page{page-break-after:always;border:none;background:#fff;}
+  .page-break{page-break-after:always;}
   @page{size:A4;margin:0;}
-  #cover-page{page-break-after:always;border:none;}
 }
 
 /* Scrollbar */
@@ -633,6 +662,41 @@ kbd{
   display:none;gap:12px;align-items:center;
 }
 body.zen-mode .wc-bar{display:flex;}
+
+/* ---- MOBILE TABLET SUPPORT ---- */
+@media(max-width:768px){
+  :root{--sidebar-w:100%;--header-h:50px;}
+  #sidebar{position:fixed;height:100%;z-index:200;transform:translateX(-100%);width:280px;}
+  #sidebar.open{transform:translateX(0);}
+  #mobile-btn{display:flex!important;}
+  .rich-toolbar{display:none!important;}
+  #mobile-floating-toolbar{display:flex!important;}
+  #paper{width:100%!important;min-height:auto;font-size:10pt;}
+  #editor-area{padding:1cm!important;}
+  .zoom-controls{bottom:70px;right:10px;}
+  .find-bar{padding:6px 10px;}
+  .find-bar input{min-width:80px;max-width:120px;}
+  #workspace{padding:20px 10px;}
+  .btn{min-height:44px;}
+  footer{flex-wrap:wrap;height:auto;padding:6px 10px;gap:6px;}
+}
+@media(min-width:769px) and (max-width:1024px){
+  :root{--sidebar-w:260px;}
+  #paper{width:180mm!important;}
+}
+#mobile-floating-toolbar{display:none;position:fixed;bottom:0;left:0;right:0;
+  background:var(--c-panel);border-top:var(--border-w) solid var(--c-border);
+  padding:4px 8px;gap:4px;z-index:150;justify-content:space-around;
+  box-shadow:0 -4px 0 rgba(0,0,0,.1);}
+#mobile-floating-toolbar button{background:var(--c-surface);border:2px solid var(--c-border);
+  color:var(--c-text);width:44px;height:44px;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;}
+#mobile-floating-toolbar button:active{background:var(--c-primary);}
+
+/* ---- PREFERS REDUCED MOTION ---- */
+@media(prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;}
+}
 </style>
 </head>
 <body>
@@ -641,6 +705,18 @@ body.zen-mode .wc-bar{display:flex;}
 <button class="btn btn-dark zen-exit" onclick="App.toggleZen()"><i class="fas fa-compress"></i> Exit Zen</button>
 <div class="wc-bar" id="zen-wc"><span id="zen-words">0</span> words</div>
 
+<!-- MOBILE FLOATING TOOLBAR -->
+<div id="mobile-floating-toolbar">
+  <button onclick="App.exec('bold')" title="Bold"><i class="fas fa-bold"></i></button>
+  <button onclick="App.exec('italic')" title="Italic"><i class="fas fa-italic"></i></button>
+  <button onclick="App.exec('underline')" title="Underline"><i class="fas fa-underline"></i></button>
+  <button onclick="App.exec('insertUnorderedList')" title="List"><i class="fas fa-list-ul"></i></button>
+  <button onclick="App.insertLink()" title="Link"><i class="fas fa-link"></i></button>
+  <button onclick="App.openModal('ref-modal')" title="Reference"><i class="fas fa-book"></i></button>
+  <button onclick="App.updateCurrentDoc();App.toast('Saved','success')" title="Save"><i class="fas fa-save"></i></button>
+  <button onclick="App.cycleTheme()" title="Theme"><i class="fas fa-circle-half-stroke"></i></button>
+</div>
+
 <!-- HEADER -->
 <header>
   <button class="btn btn-icon btn-ghost" id="mobile-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
@@ -648,7 +724,7 @@ body.zen-mode .wc-bar{display:flex;}
   </button>
 
   <div class="logo">THESIS<span style="color:#000;background:#fff;padding:0 4px;border:2px solid #000;box-shadow:2px 2px 0 #000;margin-left:4px;">.WEB</span></div>
-  <span class="logo-badge">PRO</span>
+  <span class="logo-badge">PRO v3</span>
 
   <div class="header-sep"></div>
 
@@ -724,7 +800,7 @@ body.zen-mode .wc-bar{display:flex;}
     <button class="btn btn-xs" onclick="App.toggleFindReplace()" title="Find & Replace (Ctrl+H)"><i class="fas fa-search"></i></button>
     <button class="btn btn-xs" onclick="App.toggleZen()" title="Zen Mode (F11)"><i class="fas fa-expand"></i></button>
     <button class="btn btn-xs btn-primary" onclick="App.openModal('export-modal')"><i class="fas fa-download"></i> Export</button>
-    <button class="btn btn-xs" onclick="App.toggleTheme()" id="btn-theme" title="Toggle theme"><i class="fas fa-moon" id="theme-icon"></i></button>
+    <button class="btn btn-xs" onclick="App.cycleTheme()" id="btn-theme" title="Cycle theme (Auto/Light/Dark)"><i class="fas fa-circle-half-stroke" id="theme-icon"></i></button>
     <a href="./index.html" class="btn btn-xs btn-ghost" title="Back to Float Suite"><i class="fas fa-th-large"></i></a>
   </div>
 </header>
@@ -948,6 +1024,7 @@ body.zen-mode .wc-bar{display:flex;}
         <button class="tab" onclick="App.switchTab('export','html')">HTML</button>
         <button class="tab" onclick="App.switchTab('export','txt')">Text</button>
         <button class="tab" onclick="App.switchTab('export','md')">Markdown</button>
+        <button class="tab" onclick="App.switchTab('export','docx')">DOCX</button>
       </div>
       <div class="tab-content" id="export-tab-pdf">
         <div class="form-group">
@@ -976,6 +1053,10 @@ body.zen-mode .wc-bar{display:flex;}
       <div class="tab-content hidden" id="export-tab-md">
         <p style="font-size:11px;color:var(--c-muted);margin-bottom:12px;">Markdown format for GitHub and other platforms.</p>
         <button class="btn btn-primary btn-full" onclick="App.exportMarkdown()"><i class="fas fa-file-code"></i> Download MD</button>
+      </div>
+      <div class="tab-content hidden" id="export-tab-docx">
+        <p style="font-size:11px;color:var(--c-muted);margin-bottom:12px;">Word-compatible document with basic formatting.</p>
+        <button class="btn btn-primary btn-full" onclick="App.exportDOCX()"><i class="fas fa-file-word"></i> Download DOCX</button>
       </div>
     </div>
   </div>
@@ -1169,7 +1250,8 @@ body.zen-mode .wc-bar{display:flex;}
       <div class="form-group"><label>Daily Word Goal</label><input type="number" class="form-input" id="setting-goal" value="1000" min="100"></div>
       <div class="form-group"><label>Auto-save Interval (seconds)</label><input type="number" class="form-input" id="setting-autosave" value="30" min="10" max="600"></div>
       <div class="form-group"><label>Theme</label>
-        <select class="form-select" id="setting-theme" onchange="App.setTheme(this.value)">
+        <select class="form-select" id="setting-theme" onchange="App.cycleTheme()">
+          <option value="auto">Auto (Follow OS)</option>
           <option value="light">Light</option>
           <option value="dark">Dark</option>
         </select>
@@ -1386,8 +1468,13 @@ class ThesisApp {
   // ── COVER PAGE ──
   toggleCover() {
     const visible = this.cover.classList.contains('visible');
-    this.cover.classList.toggle('visible',!visible);
-    this.cover.style.display = visible ? 'none' : '';
+    if(visible){
+      this.cover.classList.remove('visible');
+      this.cover.style.display='none';
+    } else {
+      this.cover.classList.add('visible');
+      this.cover.style.display='';
+    }
     document.getElementById('cover-btn-text').textContent = visible ? 'Add Cover Page' : 'Remove Cover';
     this.scheduleAutosave();
   }
@@ -1541,7 +1628,9 @@ class ThesisApp {
 
   clearDocument() {
     this.editor.innerHTML='<p>Start writing...</p>';
-    this.cover.classList.remove('visible'); this.cover.style.display='none';
+    this.cover.classList.remove('visible');
+    this.cover.style.display='none';
+    document.getElementById('cover-btn-text').textContent='Add Cover Page';
     this.currentDocId=null; this.footnoteCount=0;
     this.renderDocList(); this.updateStats(); this.updateOutline();
     this.closeModal('clear-modal');
@@ -1893,19 +1982,62 @@ class ThesisApp {
   exportPDF() {
     const includeCover=document.getElementById('exp-cover').checked;
     const filename=(document.getElementById('exp-filename')?.value||'document')+'.pdf';
-    if(!includeCover&&this.cover.classList.contains('visible')){ this.cover.style.display='none'; }
-    const opt={margin:[10,10,10,10],filename,image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
+    // Temporarily hide cover if not included
+    if(!includeCover && this.cover.classList.contains('visible')){
+      this.cover.classList.add('pdf-hide');
+    }
+    const opt={
+      margin: 0,
+      filename,
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,scrollY:0},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],before:'#cover-page',after:'.page-break'}
+    };
     html2pdf().set(opt).from(this.paper).save().then(()=>{
-      if(!includeCover&&this.cover.classList.contains('visible')) this.cover.style.display='';
+      this.cover.classList.remove('pdf-hide');
       this.closeModal('export-modal');
       this.toast('PDF exported!','success');
-    }).catch(()=>{ window.print(); });
+    }).catch(err=>{
+      this.cover.classList.remove('pdf-hide');
+      console.error('PDF export failed:',err);
+      this.toast('PDF failed — using Print instead','warn');
+      window.print();
+    });
   }
 
   exportHTML() {
-    const styles=Array.from(document.styleSheets).map(s=>{ try{ return Array.from(s.cssRules).map(r=>r.cssText).join('\n'); }catch(e){return '';} }).join('\n');
-    const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Document</title><style>body{margin:0;background:#fff;} ${styles}</style></head><body><div style="max-width:210mm;margin:0 auto;padding:3cm;font-family:Arial,sans-serif;font-size:12pt;line-height:1.5;">${this.editor.innerHTML}</div></body></html>`;
-    this._download(html,'document.html','text/html');
+    const filename=document.getElementById('exp-filename')?.value||'document';
+    // Build comprehensive inline styles for the exported document
+    const paperStyles = `
+      body{margin:0;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:12pt;line-height:1.5;}
+      .cover-page{min-height:297mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:3cm;background:#fff;border-bottom:2px solid #000;font-family:Arial,sans-serif;}
+      .editor-area{min-height:230mm;padding:3cm;font-family:Arial,sans-serif;font-size:12pt;line-height:1.5;text-align:justify;word-wrap:break-word;}
+      .editor-area h1{font-size:14pt;font-weight:bold;text-align:center;text-transform:uppercase;margin:16px 0 10px;}
+      .editor-area h2{font-size:12pt;font-weight:bold;text-transform:uppercase;margin:14px 0 8px;}
+      .editor-area h3{font-size:12pt;font-weight:bold;font-style:italic;margin:12px 0 6px;}
+      .editor-area p{margin-bottom:0;text-indent:1.25cm;}
+      .editor-area img{max-width:100%;height:auto;display:block;margin:12px 0;}
+      .editor-area table{width:100%;border-collapse:collapse;margin:12px 0;font-size:11pt;}
+      .editor-area th{background:#f0f0f0;font-weight:bold;text-align:center;}
+      .editor-area td,.editor-area th{border:1px solid #000;padding:6px 10px;}
+      .editor-area blockquote{margin:16px 4cm;font-size:10pt;text-align:justify;}
+      .editor-area a{color:#0066cc;text-decoration:underline;}
+      .editor-area ol,.editor-area ul{padding-left:1.5cm;margin:8px 0;}
+      .editor-area li{margin-bottom:4px;}
+      .page-break{page-break-after:always;border-top:2px dashed #ccc;margin:20px 0;text-align:center;}
+      .footnote-area{border-top:1px solid #000;padding-top:12px;margin-top:20px;font-size:10pt;}
+      .footnote-item{margin-bottom:6px;}
+      @media print{.page-break{page-break-after:always;}}
+    `;
+    // Build content including cover page if visible
+    let content = '';
+    if(this.cover.classList.contains('visible')){
+      content += `<div class="cover-page">${this.cover.innerHTML}</div>`;
+    }
+    content += `<div class="editor-area">${this.editor.innerHTML}</div>`;
+    const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${this.esc(filename)}</title><style>${paperStyles}</style></head><body><div style="max-width:210mm;margin:0 auto;">${content}</div></body></html>`;
+    this._download(html,filename+'.html','text/html');
     this.closeModal('export-modal');
     this.toast('HTML exported','success');
   }
@@ -1936,6 +2068,45 @@ class ThesisApp {
     this._download(md,'document.md','text/markdown');
     this.closeModal('export-modal');
     this.toast('Markdown exported','success');
+  }
+
+  exportDOCX() {
+    const filename=document.getElementById('exp-filename')?.value||'document';
+    // Build Word-compatible HTML that Word can open
+    const std=this.currentStandard;
+    const fontMap={abnt:'Arial,sans-serif',apa:"'Times New Roman',serif",mla:"'Times New Roman',serif"};
+    const lhMap={abnt:'1.5',apa:'double',mla:'double'};
+    const font=fontMap[std]||'Arial,sans-serif';
+    const lh=lhMap[std]||'1.5';
+    let body='';
+    if(this.cover.classList.contains('visible')){
+      body+=`<div style="page-break-after:always;text-align:center;padding-top:8cm;font-family:${font};">${this.cover.innerHTML}</div>`;
+    }
+    body+=this.editor.innerHTML;
+    const docxHtml=`
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><title>${this.esc(filename)}</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+<style>
+body{font-family:${font};font-size:12pt;line-height:${lh};margin:2.54cm;}
+h1{font-size:14pt;font-weight:bold;text-align:center;text-transform:uppercase;margin:16px 0 10px;}
+h2{font-size:12pt;font-weight:bold;text-transform:uppercase;margin:14px 0 8px;}
+h3{font-size:12pt;font-weight:bold;font-style:italic;margin:12px 0 6px;}
+p{margin-bottom:0;text-indent:1.25cm;}
+table{border-collapse:collapse;width:100%;}
+td,th{border:1px solid #000;padding:6px 10px;}
+img{max-width:100%;}
+.page-break{page-break-after:always;}
+</style></head>
+<body>${body}</body></html>`;
+    const blob=new Blob([docxHtml],{type:'application/vnd.ms-word'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=filename+'.doc';
+    a.click();
+    URL.revokeObjectURL(a.href);
+    this.closeModal('export-modal');
+    this.toast('DOCX exported','success');
   }
 
   _download(content, filename, mime) {
@@ -1986,7 +2157,25 @@ class ThesisApp {
     else { document.documentElement.removeAttribute('data-theme'); document.getElementById('theme-icon').className='fas fa-moon'; }
   }
 
-  toggleTheme() { this.setTheme(this.settings.theme==='dark'?'light':'dark'); }
+  toggleTheme() { this.cycleTheme(); }
+  cycleTheme() {
+    const modes = ['auto','light','dark'];
+    let cur = localStorage.getItem('thesis_theme_mode') || 'auto';
+    let idx = modes.indexOf(cur);
+    if (idx === -1) idx = 0;
+    let next = modes[(idx + 1) % modes.length];
+    localStorage.setItem('thesis_theme_mode', next);
+    this.settings.theme = next === 'dark' ? 'dark' : 'light';
+    if (next === 'dark') document.documentElement.setAttribute('data-theme','dark');
+    else if (next === 'light') document.documentElement.removeAttribute('data-theme');
+    else {
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.setAttribute('data-theme','dark');
+      else document.documentElement.removeAttribute('data-theme');
+    }
+    const icon = document.getElementById('theme-icon');
+    if (icon) icon.className = next==='auto'?'fas fa-circle-half-stroke':next==='dark'?'fas fa-moon':'fas fa-sun';
+    this.toast('Theme: ' + next.charAt(0).toUpperCase() + next.slice(1), 'success');
+  }
 
   toggleSpellCheck(val) { this.editor.spellcheck=val==='true'; }
 
