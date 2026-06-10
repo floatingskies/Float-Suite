@@ -8,11 +8,11 @@
 
 <meta name="theme-color" content="#0a0a0a">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Caveat:wght@700&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@400;700;900&family=Oswald:wght@700&family=Playfair+Display:ital,wght@0,700;1,700&family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
 <script>
 // Auto Dark/Light Mode
 (function(){
-  var mode=localStorage.getItem('inkling_theme_mode')||'dark';
+  var mode=localStorage.getItem('inkling_theme_mode')||'auto';
   var isDark=true;
   if(mode==='light')isDark=false;
   else if(mode==='dark')isDark=true;
@@ -30,7 +30,7 @@
   function updateThemeIcon(){
     var icon=document.getElementById('theme-icon');
     if(!icon)return;
-    var m=localStorage.getItem('inkling_theme_mode')||'dark';
+    var m=localStorage.getItem('inkling_theme_mode')||'auto';
     icon.className=m==='auto'?'fas fa-circle-half-stroke':m==='dark'?'fas fa-moon':'fas fa-sun';
   }
   document.addEventListener('DOMContentLoaded',updateThemeIcon);
@@ -53,6 +53,7 @@
   --c-danger:#ff3355;
   --c-info:#23c9ff;
   --c-warn:#ff8c00;
+  --c-purple:#9966ff;
   --bw:2px;
   --shadow:4px 4px 0 rgba(0,0,0,.8);
   --shadow-accent:4px 4px 0 var(--c-accent);
@@ -78,6 +79,7 @@
   --c-danger:#cc0022;
   --c-info:#0088cc;
   --c-warn:#cc7700;
+  --c-purple:#7744cc;
   --shadow:4px 4px 0 rgba(0,0,0,.3);
   --shadow-accent:4px 4px 0 var(--c-accent);
 }
@@ -115,7 +117,7 @@ body{
 
 /* ---- INPUTS ---- */
 input,select,textarea{
-  background:#1a1a1a;border:var(--bw) solid var(--c-border);
+  background:var(--c-panel2);border:var(--bw) solid var(--c-border);
   color:var(--c-text);font-family:var(--font-ui);font-size:11px;
   padding:6px 8px;width:100%;border-radius:0;
   transition:border-color .15s,box-shadow .15s;
@@ -123,7 +125,7 @@ input,select,textarea{
 input:focus,select:focus{border-color:var(--c-accent);box-shadow:0 0 0 1px var(--c-accent);}
 input[type="color"]{height:30px;padding:1px;cursor:pointer;width:40px;}
 input[type="range"]{
-  height:6px;padding:0;background:#1a1a1a;accent-color:var(--c-accent);
+  height:6px;padding:0;background:var(--c-panel2);accent-color:var(--c-accent);
   border:1px solid var(--c-border);
 }
 input[type="range"]::-webkit-slider-thumb{width:14px;height:14px;background:var(--c-accent);border:2px solid #000;cursor:pointer;}
@@ -145,8 +147,10 @@ header{
   background:var(--c-accent);color:#000;padding:4px 10px;
   border:var(--bw) solid #fff;box-shadow:3px 3px 0 #fff;
   transform:rotate(-1deg);transition:transform .2s;
+  animation:logo-pulse 3s ease-in-out infinite;
 }
 .logo:hover{transform:rotate(1deg) scale(1.03);}
+@keyframes logo-pulse{0%,100%{box-shadow:3px 3px 0 #fff}50%{box-shadow:3px 3px 0 #fff,0 0 12px var(--c-accent)}}
 .logo-sub{font-size:9px;font-family:var(--font-head);letter-spacing:2px;color:var(--c-muted);flex-shrink:0;}
 .header-sep{width:1px;height:28px;background:var(--c-border);flex-shrink:0;}
 .header-center{flex:1;display:flex;align-items:center;gap:8px;overflow:hidden;}
@@ -168,7 +172,7 @@ header{
 /* ---- TOOLBAR ---- */
 #toolbar{
   width:var(--toolbar-w);background:#000;
-  border-right:var(--bw) solid #1a1a1a;
+  border-right:var(--bw) solid var(--c-border);
   display:flex;flex-direction:column;align-items:center;
   padding:8px 0;gap:2px;z-index:10;flex-shrink:0;
   overflow-y:auto;scrollbar-width:none;
@@ -179,17 +183,26 @@ header{
 
 /* ---- VIEWPORT ---- */
 #viewport{
-  flex:1;background:#1a1a1a;
-  background-image:linear-gradient(45deg,#141414 25%,transparent 25%),linear-gradient(-45deg,#141414 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#141414 75%),linear-gradient(-45deg,transparent 75%,#141414 75%);
-  background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;
+  flex:1;background:var(--c-panel2);
+  background-image:
+    linear-gradient(rgba(128,128,128,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(128,128,128,.06) 1px,transparent 1px),
+    linear-gradient(45deg,var(--c-border) 25%,transparent 25%),
+    linear-gradient(-45deg,var(--c-border) 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,var(--c-border) 75%),
+    linear-gradient(-45deg,transparent 75%,var(--c-border) 75%);
+  background-size:20px 20px,20px 20px,16px 16px,16px 16px,16px 16px,16px 16px;
+  background-position:0 0,0 0,0 0,0 8px,8px -8px,-8px 0;
   position:relative;overflow:hidden;
+  contain:paint;
 }
 #artboard-container{
   position:absolute;transform-origin:0 0;
+  will-change:transform;
 }
 #artboard{
   position:relative;background:#fff;
-  box-shadow:0 0 0 2px #fff,0 0 0 4px #000,8px 8px 0 #000;
+  box-shadow:0 0 0 2px #fff,0 0 0 4px #000,4px 4px 0 #000,12px 12px 0 rgba(0,0,0,.3);
 }
 #artboard svg{display:block;overflow:visible;}
 #artboard canvas{display:none;}
@@ -202,9 +215,11 @@ header{
 
 /* Transform handles */
 .transform-handle{
-  position:absolute;width:8px;height:8px;background:var(--c-accent);
-  border:1px solid #000;z-index:100;transform:translate(-50%,-50%);
-  cursor:nwse-resize;
+  position:absolute;width:10px;height:10px;background:var(--c-accent);
+  border:2px solid #000;z-index:100;transform:translate(-50%,-50%);
+  cursor:nwse-resize;min-width:20px;min-height:20px;
+  /* Larger hit area */
+  padding:5px;background-clip:content-box;
 }
 .transform-handle.rotate-handle{
   background:var(--c-info);border-radius:50%;cursor:crosshair;
@@ -224,6 +239,7 @@ header{
   border-left:var(--bw) solid #000;
   display:flex;flex-direction:column;
   overflow:hidden;flex-shrink:0;z-index:10;
+  contain:layout;
 }
 .panel-tabs{
   display:flex;background:#000;border-bottom:var(--bw) solid #000;flex-shrink:0;
@@ -231,26 +247,28 @@ header{
 .ptab{
   flex:1;padding:8px 6px;font-family:var(--font-head);font-size:9px;
   text-transform:uppercase;cursor:pointer;text-align:center;
-  border-right:1px solid #1a1a1a;color:var(--c-muted);
-  transition:background .1s,color .1s;
+  border-right:1px solid var(--c-border);color:var(--c-muted);
+  border-top:3px solid transparent;
 }
 .ptab:last-child{border-right:none;}
-.ptab:hover{color:var(--c-text);}
-.ptab.active{background:var(--c-accent);color:#000;}
+.ptab:hover{color:var(--c-text);border-top-color:var(--c-muted);}
+.ptab.active{background:var(--c-accent);color:#000;border-top-color:var(--c-accent);}
 .panel-content{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--c-border) transparent;}
 .panel-content::-webkit-scrollbar{width:4px;}
 .panel-content::-webkit-scrollbar-thumb{background:var(--c-border);}
-.pane{display:none;}
-.pane.active{display:block;}
+.pane{display:none;content-visibility:auto;contain-intrinsic-size:0 400px;}
+.pane.active{display:block;content-visibility:visible;}
 
 /* Props section */
-.prop-section{padding:12px;border-bottom:1px solid #1a1a1a;}
+.prop-section{padding:12px;border-bottom:1px solid var(--c-border);}
 .section-title{
   font-family:var(--font-head);font-size:10px;color:var(--c-accent);
   margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;
   display:flex;align-items:center;gap:8px;
+  transition:transform .15s;cursor:default;
 }
-.section-title::after{content:'';flex:1;height:1px;background:#222;}
+.section-title:hover{transform:scale(1.02);}
+.section-title::after{content:'';flex:1;height:1px;background:var(--c-border);}
 .prop-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .prop-label{
   font-size:9px;color:var(--c-muted);font-family:var(--font-head);
@@ -274,11 +292,11 @@ header{
 /* Layers panel */
 #layers-list{overflow-y:auto;scrollbar-width:thin;}
 .layer-item{
-  padding:8px 12px;border-bottom:1px solid #1a1a1a;cursor:pointer;
+  padding:8px 12px;border-bottom:1px solid var(--c-border);cursor:pointer;
   display:flex;align-items:center;gap:8px;font-size:11px;
   background:var(--c-panel);transition:background .1s;
 }
-.layer-item:hover{background:#1a1a1a;}
+.layer-item:hover{background:var(--c-panel2);}
 .layer-item.active{background:#000;color:var(--c-accent);border-left:3px solid var(--c-accent);}
 .layer-item.hidden-layer{opacity:.4;}
 .layer-vis{cursor:pointer;color:var(--c-muted);font-size:11px;transition:color .1s;}
@@ -286,16 +304,16 @@ header{
 .layer-lock{cursor:pointer;color:var(--c-muted);font-size:10px;}
 .layer-lock.locked{color:var(--c-danger);}
 .layer-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--font-head);font-size:10px;text-transform:uppercase;}
-.layer-thumb{width:26px;height:20px;border:1px solid #333;background:#fff;overflow:hidden;flex-shrink:0;}
+.layer-thumb{width:26px;height:20px;border:1px solid var(--c-border-bright);background:#fff;overflow:hidden;flex-shrink:0;}
 .layer-thumb svg{width:100%;height:100%;}
 .layer-controls{
-  padding:8px;border-bottom:1px solid #1a1a1a;
+  padding:8px;border-bottom:1px solid var(--c-border);
   display:flex;gap:5px;align-items:center;background:#000;flex-shrink:0;
 }
 
 /* ---- STATUS BAR ---- */
 #status-bar{
-  height:var(--footer-h);background:#000;border-top:1px solid #1a1a1a;
+  height:var(--footer-h);background:#000;border-top:1px solid var(--c-border);
   display:flex;align-items:center;padding:0 14px;font-size:10px;
   color:var(--c-muted);justify-content:space-between;flex-shrink:0;
   gap:12px;font-family:var(--font-head);text-transform:uppercase;
@@ -327,7 +345,7 @@ header{
 .modal-body{padding:16px;}
 .modal-footer{
   padding:12px 16px;border-top:1px solid var(--c-border);
-  display:flex;justify-content:flex-end;gap:8px;background:#0a0a0a;
+  display:flex;justify-content:flex-end;gap:8px;background:var(--c-bg);
 }
 .form-group{margin-bottom:12px;}
 .form-group label{display:block;font-size:9px;color:var(--c-muted);font-family:var(--font-head);text-transform:uppercase;margin-bottom:5px;letter-spacing:.5px;}
@@ -346,6 +364,9 @@ header{
   font-family:var(--font-head);font-size:11px;letter-spacing:1px;
   animation:toastIn .2s cubic-bezier(.175,.885,.32,1.275);white-space:nowrap;
 }
+.toast.toast-error{border-color:var(--c-danger);box-shadow:4px 4px 0 var(--c-danger);color:var(--c-danger);}
+.toast.toast-warn{border-color:var(--c-accent2);box-shadow:4px 4px 0 var(--c-accent2);color:var(--c-accent2);}
+.toast.toast-info{border-color:var(--c-info);box-shadow:4px 4px 0 var(--c-info);color:var(--c-info);}
 @keyframes toastIn{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
 
 /* Context menu */
@@ -359,7 +380,7 @@ header{
   padding:9px 14px;font-family:var(--font-head);font-size:10px;
   text-transform:uppercase;letter-spacing:.5px;cursor:pointer;
   display:flex;align-items:center;gap:10px;
-  border-bottom:1px solid #1a1a1a;transition:background .1s,color .1s;
+  border-bottom:1px solid var(--c-border);transition:background .1s,color .1s;
 }
 .ctx-item:hover{background:var(--c-accent);color:#000;}
 .ctx-item:last-child{border-bottom:none;}
@@ -368,16 +389,16 @@ header{
 
 /* Scrollbar */
 ::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:#0a0a0a;}
-::-webkit-scrollbar-thumb{background:#333;border:1px solid #000;}
+::-webkit-scrollbar-track{background:var(--c-bg);}
+::-webkit-scrollbar-thumb{background:var(--c-border-bright);border:1px solid #000;}
 ::-webkit-scrollbar-thumb:hover{background:var(--c-accent);}
 
 /* Gradient editor */
 .gradient-stop{
   display:flex;align-items:center;gap:6px;padding:4px 0;
-  border-bottom:1px solid #222;
+  border-bottom:1px solid var(--c-border);
 }
-.gradient-preview{height:18px;border:1px solid #333;cursor:pointer;margin-top:6px;}
+.gradient-preview{height:18px;border:1px solid var(--c-border-bright);cursor:pointer;margin-top:6px;}
 
 /* Tooltip */
 [data-tip]{position:relative;}
@@ -412,11 +433,11 @@ header{
 
 /* Ruler */
 #ruler-h,#ruler-v{
-  position:absolute;background:#111;z-index:15;pointer-events:none;opacity:.8;
+  position:absolute;background:var(--c-panel);z-index:15;pointer-events:none;opacity:.8;
 }
 #ruler-h{top:0;left:20px;right:0;height:20px;}
 #ruler-v{left:0;top:20px;bottom:0;width:20px;}
-#ruler-corner{position:absolute;top:0;left:0;width:20px;height:20px;background:#1a1a1a;z-index:16;}
+#ruler-corner{position:absolute;top:0;left:0;width:20px;height:20px;background:var(--c-panel);z-index:16;}
 
 /* Smart guides */
 .smart-guide{
@@ -441,22 +462,22 @@ header{
 /* ---- LIGHT MODE OVERRIDES ---- */
 [data-theme="light"] header{background:#000;color:#fff;}
 [data-theme="light"] #toolbar{background:#ddd;border-right:var(--bw) solid #000;}
-[data-theme="light"] #viewport{background:#bbb;background-image:linear-gradient(45deg,#aaa 25%,transparent 25%),linear-gradient(-45deg,#aaa 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#aaa 75%),linear-gradient(-45deg,transparent 75%,#aaa 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;}
-[data-theme="light"] #artboard{box-shadow:0 0 0 2px #000,0 0 0 4px #000,8px 8px 0 #000;}
+[data-theme="light"] #viewport{background:#bbb;background-image:linear-gradient(rgba(0,0,0,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.06) 1px,transparent 1px),linear-gradient(45deg,#aaa 25%,transparent 25%),linear-gradient(-45deg,#aaa 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#aaa 75%),linear-gradient(-45deg,transparent 75%,#aaa 75%);background-size:20px 20px,20px 20px,16px 16px,16px 16px,16px 16px,16px 16px;background-position:0 0,0 0,0 0,0 8px,8px -8px,-8px 0;}
+[data-theme="light"] #artboard{box-shadow:0 0 0 2px #000,0 0 0 4px #000,4px 4px 0 #000,12px 12px 0 rgba(0,0,0,.2);}
 [data-theme="light"] #properties{background:var(--c-panel);border-left:var(--bw) solid #000;}
 [data-theme="light"] .panel-tabs{background:#000;border-bottom:var(--bw) solid #000;}
 [data-theme="light"] .ptab{border-right:1px solid #ccc;color:#666;}
 [data-theme="light"] .ptab.active{background:var(--c-accent);color:#000;}
-[data-theme="light"] #status-bar{background:#eee;border-top:1px solid #000;color:#333;}
+[data-theme="light"] #status-bar{background:#eee;border-top:1px solid #000;color:var(--c-text);}
 [data-theme="light"] .status-item span{color:var(--c-accent);}
 [data-theme="light"] .modal{border:var(--bw) solid #000;box-shadow:8px 8px 0 #000;}
 [data-theme="light"] .modal-header{background:#000;color:var(--c-accent);}
 [data-theme="light"] .toast{background:#000;color:var(--c-accent);border:var(--bw) solid var(--c-accent);box-shadow:4px 4px 0 var(--c-accent);}
 [data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea{background:#fff;border:var(--bw) solid #000;color:#000;}
 [data-theme="light"] input:focus,[data-theme="light"] select:focus{border-color:var(--c-accent);box-shadow:0 0 0 1px var(--c-accent);}
-[data-theme="light"] .layer-item{background:var(--c-panel);border-bottom:1px solid #ddd;}
+[data-theme="light"] .layer-item{background:var(--c-panel);border-bottom:1px solid var(--c-border);}
 [data-theme="light"] .layer-item.active{background:#000;color:var(--c-accent);}
-[data-theme="light"] .prop-section{border-bottom:1px solid #ddd;}
+[data-theme="light"] .prop-section{border-bottom:1px solid var(--c-border);}
 
 /* ---- MOBILE SUPPORT ---- */
 @media(max-width:768px){
@@ -483,6 +504,45 @@ header{
 }
 #mobile-toolbar-toggle,#mobile-panel-toggle{display:none;}
 
+/* ---- TOOL CATEGORY COLORS ---- */
+.tool-cat-select{border-left:3px solid var(--c-info);}
+.tool-cat-draw{border-left:3px solid var(--c-accent);}
+.tool-cat-shape{border-left:3px solid var(--c-accent2);}
+.tool-cat-nav{border-left:3px solid var(--c-purple);}
+
+/* ---- FOCUS-VISIBLE ---- */
+.btn:focus-visible{outline:3px solid var(--c-accent);outline-offset:2px;}
+.btn-icon:focus-visible{outline:3px solid var(--c-accent);outline-offset:2px;}
+.ptab:focus-visible{outline:3px solid var(--c-accent);outline-offset:-2px;}
+
+/* ---- UTILITY CLASSES (inline style replacements) ---- */
+.grid-2-col{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.grid-6-col{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;}
+.grid-4-col{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.flex-row-center{display:flex;align-items:center;gap:6px;}
+.flex-row-gap5{display:flex;gap:5px;}
+.flex-col-gap5{display:flex;flex-direction:column;gap:5px;}
+.flex-1{flex:1;}
+.width-100{width:100%;}
+.width-55{width:55px;}
+.width-60{width:60px;}
+.width-45{width:45px;}
+.mt-4{margin-top:4px;}
+.mt-6{margin-top:6px;}
+.mt-8{margin-top:8px;}
+.mb-8{margin-bottom:8px;}
+.no-selection-msg{padding:20px;text-align:center;color:var(--c-muted);}
+.no-selection-icon{font-size:24px;margin-bottom:8px;display:block;}
+.no-selection-text{font-family:var(--font-head);font-size:10px;text-transform:uppercase;letter-spacing:1px;}
+.check-label{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;}
+.check-label-lg{display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:11px;}
+.canvas-label{font-size:9px;color:var(--c-muted);font-family:var(--font-head);text-transform:uppercase;}
+.status-left{display:flex;gap:16px;align-items:center;}
+.status-right{display:flex;gap:12px;align-items:center;}
+.status-fit-btn{padding:2px 6px;font-size:9px;}
+.palette-name{font-size:8px;color:var(--c-muted);font-family:var(--font-head);margin-bottom:3px;}
+.palette-colors{display:flex;gap:3px;}
+
 /* ---- PREFERS REDUCED MOTION ---- */
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;}
@@ -500,7 +560,7 @@ header{
     <button class="btn btn-sm" id="btn-undo" disabled data-tip="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
     <button class="btn btn-sm" id="btn-redo" disabled data-tip="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
     <div class="header-sep"></div>
-    <span style="font-size:9px;color:var(--c-muted);font-family:var(--font-head);text-transform:uppercase;">Canvas:</span>
+    <span class="canvas-label">Canvas:</span>
     <button class="preset-btn" data-w="900" data-h="600" onclick="App.resizeArtboard(900,600,this)">900×600</button>
     <button class="preset-btn active" data-w="1920" data-h="1080" onclick="App.resizeArtboard(1920,1080,this)">1920×1080</button>
     <button class="preset-btn" data-w="1080" data-h="1080" onclick="App.resizeArtboard(1080,1080,this)">1080² Social</button>
@@ -522,37 +582,37 @@ header{
 <div id="workspace">
 
   <!-- TOOLBAR -->
-  <nav id="toolbar">
+  <nav id="toolbar" role="toolbar" aria-label="Drawing tools">
     <!-- SELECT -->
-    <div class="tool-label">SEL</div>
-    <button class="btn btn-icon active" id="tool-select" data-tip="Select (V)"><i class="fas fa-mouse-pointer"></i></button>
-    <button class="btn btn-icon" id="tool-direct" data-tip="Direct Select (A)"><i class="fas fa-location-arrow"></i></button>
-    <button class="btn btn-icon" id="tool-node" data-tip="Node Edit (N)"><i class="fas fa-bezier-curve"></i></button>
+    <div class="tool-label tool-cat-select">SEL</div>
+    <button class="btn btn-icon active" id="tool-select" data-tip="Select (V)" aria-label="Select tool"><i class="fas fa-mouse-pointer"></i></button>
+    <button class="btn btn-icon" id="tool-direct" data-tip="Direct Select (A)" aria-label="Direct Select"><i class="fas fa-location-arrow"></i></button>
+    <button class="btn btn-icon" id="tool-node" data-tip="Node Edit (N)" aria-label="Node Edit"><i class="fas fa-project-diagram"></i></button>
     <div class="tool-sep"></div>
     <!-- DRAW -->
-    <div class="tool-label">DRAW</div>
-    <button class="btn btn-icon" id="tool-pen" data-tip="Pen / Bezier (P)"><i class="fas fa-pen-nib"></i></button>
-    <button class="btn btn-icon" id="tool-freehand" data-tip="Freehand (B)"><i class="fas fa-paint-brush"></i></button>
-    <button class="btn btn-icon" id="tool-text" data-tip="Text (T)"><i class="fas fa-font"></i></button>
-    <button class="btn btn-icon" id="tool-eyedropper" data-tip="Eyedropper (I)"><i class="fas fa-eye-dropper"></i></button>
+    <div class="tool-label tool-cat-draw">DRAW</div>
+    <button class="btn btn-icon" id="tool-pen" data-tip="Pen / Bezier (P)" aria-label="Pen tool"><i class="fas fa-pen-nib"></i></button>
+    <button class="btn btn-icon" id="tool-freehand" data-tip="Freehand (B)" aria-label="Freehand draw"><i class="fas fa-paint-brush"></i></button>
+    <button class="btn btn-icon" id="tool-text" data-tip="Text (T)" aria-label="Text tool"><i class="fas fa-font"></i></button>
+    <button class="btn btn-icon" id="tool-eyedropper" data-tip="Eyedropper (I)" aria-label="Eyedropper"><i class="fas fa-eye-dropper"></i></button>
     <div class="tool-sep"></div>
     <!-- SHAPES -->
-    <div class="tool-label">SHAPE</div>
-    <button class="btn btn-icon" id="tool-rect" data-tip="Rectangle (R)"><i class="far fa-square"></i></button>
-    <button class="btn btn-icon" id="tool-circle" data-tip="Ellipse (E)"><i class="far fa-circle"></i></button>
-    <button class="btn btn-icon" id="tool-line" data-tip="Line (L)"><i class="fas fa-minus"></i></button>
-    <button class="btn btn-icon" id="tool-polygon" data-tip="Polygon (Y)"><i class="fas fa-draw-polygon"></i></button>
-    <button class="btn btn-icon" id="tool-star" data-tip="Star (S)"><i class="fas fa-star"></i></button>
-    <button class="btn btn-icon" id="tool-arrow" data-tip="Arrow"><i class="fas fa-long-arrow-alt-right"></i></button>
+    <div class="tool-label tool-cat-shape">SHAPE</div>
+    <button class="btn btn-icon" id="tool-rect" data-tip="Rectangle (R)" aria-label="Rectangle tool"><i class="far fa-square"></i></button>
+    <button class="btn btn-icon" id="tool-circle" data-tip="Ellipse (E)" aria-label="Ellipse tool"><i class="far fa-circle"></i></button>
+    <button class="btn btn-icon" id="tool-line" data-tip="Line (L)" aria-label="Line tool"><i class="fas fa-minus"></i></button>
+    <button class="btn btn-icon" id="tool-polygon" data-tip="Polygon (Y)" aria-label="Polygon tool"><i class="fas fa-draw-polygon"></i></button>
+    <button class="btn btn-icon" id="tool-star" data-tip="Star (S)" aria-label="Star tool"><i class="fas fa-star"></i></button>
+    <button class="btn btn-icon" id="tool-arrow" data-tip="Arrow" aria-label="Arrow tool"><i class="fas fa-long-arrow-alt-right"></i></button>
     <div class="tool-sep"></div>
     <!-- NAV -->
-    <div class="tool-label">NAV</div>
-    <button class="btn btn-icon" id="tool-hand" data-tip="Pan (H)"><i class="fas fa-hand-paper"></i></button>
-    <button class="btn btn-icon" id="tool-zoom" data-tip="Zoom (Z)"><i class="fas fa-search-plus"></i></button>
+    <div class="tool-label tool-cat-nav">NAV</div>
+    <button class="btn btn-icon" id="tool-hand" data-tip="Pan (H)" aria-label="Pan tool"><i class="fas fa-hand-paper"></i></button>
+    <button class="btn btn-icon" id="tool-zoom" data-tip="Zoom (Z)" aria-label="Zoom tool"><i class="fas fa-search-plus"></i></button>
   </nav>
 
   <!-- VIEWPORT -->
-  <main id="viewport">
+  <main id="viewport" role="main" aria-label="Canvas viewport">
     <div id="artboard-container">
       <div id="artboard">
         <svg id="main-svg" xmlns="http://www.w3.org/2000/svg">
@@ -567,11 +627,11 @@ header{
     </div>
     <canvas id="ruler-h-canvas" style="position:absolute;top:0;left:0;pointer-events:none;z-index:15;display:none;"></canvas>
     <canvas id="ruler-v-canvas" style="position:absolute;top:0;left:0;pointer-events:none;z-index:15;display:none;"></canvas>
-    <div id="ruler-corner" style="display:none;position:absolute;top:0;left:0;width:20px;height:20px;background:#0a0a0a;z-index:16;border:1px solid #1a1a1a;"></div>
+    <div id="ruler-corner" style="display:none;position:absolute;top:0;left:0;width:20px;height:20px;background:var(--c-panel);z-index:16;border:1px solid var(--c-border);"></div>
   </main>
 
   <!-- RIGHT PANEL -->
-  <aside id="properties">
+  <aside id="properties" role="complementary" aria-label="Properties panel">
     <div class="panel-tabs">
       <div class="ptab active" data-tab="props" onclick="App.ui.switchTab('props')">Props</div>
       <div class="ptab" data-tab="layers" onclick="App.ui.switchTab('layers')">Layers</div>
@@ -582,9 +642,9 @@ header{
       <!-- PROPS PANE -->
       <div class="pane active" id="pane-props">
         <!-- Empty state -->
-        <div id="no-selection" style="padding:20px;text-align:center;color:var(--c-muted);">
-          <i class="fas fa-mouse-pointer" style="font-size:24px;margin-bottom:8px;display:block;"></i>
-          <span style="font-family:var(--font-head);font-size:10px;text-transform:uppercase;letter-spacing:1px;">Select an element</span>
+        <div id="no-selection" class="no-selection-msg">
+          <i class="fas fa-mouse-pointer no-selection-icon"></i>
+          <span class="no-selection-text">Select an element</span>
         </div>
 
         <div id="selection-props" style="display:none;">
@@ -592,16 +652,16 @@ header{
           <!-- TYPOGRAPHY (text only) -->
           <div id="text-props" class="prop-section" style="display:none;">
             <div class="section-title">Typography</div>
-            <div class="form-group" style="margin-bottom:8px;">
-              <div style="display:flex;gap:6px;align-items:center;">
-                <select id="inp-font-family" style="flex:1;"></select>
+            <div class="form-group mb-8">
+              <div class="flex-row-center">
+                <select id="inp-font-family" class="flex-1"></select>
               </div>
             </div>
             <div class="prop-row">
               <span class="prop-label">Size</span>
-              <input type="number" id="inp-font-size" min="1" max="500" style="width:60px;">
+              <input type="number" id="inp-font-size" min="1" max="500" class="width-60">
               <span class="prop-label">Wt</span>
-              <select id="inp-font-weight" style="flex:1;">
+              <select id="inp-font-weight" class="flex-1">
                 <option value="100">Thin</option>
                 <option value="300">Light</option>
                 <option value="400">Regular</option>
@@ -611,12 +671,12 @@ header{
             </div>
             <div class="prop-row">
               <span class="prop-label">Style</span>
-              <select id="inp-font-style" style="flex:1;">
+              <select id="inp-font-style" class="flex-1">
                 <option value="normal">Normal</option>
                 <option value="italic">Italic</option>
               </select>
               <span class="prop-label">Align</span>
-              <select id="inp-text-anchor" style="flex:1;">
+              <select id="inp-text-anchor" class="flex-1">
                 <option value="start">Left</option>
                 <option value="middle">Center</option>
                 <option value="end">Right</option>
@@ -624,16 +684,16 @@ header{
             </div>
             <div class="prop-row">
               <span class="prop-label">Lead</span>
-              <input type="number" id="inp-line-height" min=".5" max="5" step=".1" value="1.2" style="width:60px;">
+              <input type="number" id="inp-line-height" min=".5" max="5" step=".1" value="1.2" class="width-60">
               <span class="prop-label">Spc</span>
-              <input type="number" id="inp-letter-spacing" min="-20" max="100" step=".5" value="0" style="width:60px;">
+              <input type="number" id="inp-letter-spacing" min="-20" max="100" step=".5" value="0" class="width-60">
             </div>
           </div>
 
           <!-- TRANSFORM -->
           <div class="prop-section">
             <div class="section-title">Transform</div>
-            <div class="coord-group" style="margin-bottom:8px;">
+            <div class="coord-group mb-8">
               <div class="coord-item"><label>X</label><input type="number" id="inp-x"></div>
               <div class="coord-item"><label>Y</label><input type="number" id="inp-y"></div>
               <div class="coord-item"><label>W</label><input type="number" id="inp-w" min="0"></div>
@@ -641,32 +701,32 @@ header{
             </div>
             <div class="prop-row">
               <span class="prop-label">Rot</span>
-              <input type="number" id="inp-rotation" value="0" min="-360" max="360" style="flex:1;">
+              <input type="number" id="inp-rotation" value="0" min="-360" max="360" class="flex-1">
               <span class="prop-label">°</span>
             </div>
             <div class="prop-row">
               <span class="prop-label">ScX</span>
-              <input type="number" id="inp-scale-x" value="1" step=".1" style="flex:1;">
+              <input type="number" id="inp-scale-x" value="1" step=".1" class="flex-1">
               <span class="prop-label">ScY</span>
-              <input type="number" id="inp-scale-y" value="1" step=".1" style="flex:1;">
+              <input type="number" id="inp-scale-y" value="1" step=".1" class="flex-1">
             </div>
             <div class="prop-row" id="row-radius" style="display:none;">
               <span class="prop-label">Rad</span>
-              <input type="range" id="inp-radius" min="0" max="200" value="0" style="flex:1;">
+              <input type="range" id="inp-radius" min="0" max="200" value="0" class="flex-1">
               <span class="prop-val" id="lbl-radius">0</span>
             </div>
             <div class="prop-row" id="row-sides" style="display:none;">
               <span class="prop-label">Sides</span>
-              <input type="number" id="inp-poly-sides" min="3" max="20" value="6" style="width:55px;">
+              <input type="number" id="inp-poly-sides" min="3" max="20" value="6" class="width-55">
             </div>
             <div class="prop-row" id="row-star-pts" style="display:none;">
               <span class="prop-label">Pts</span>
-              <input type="number" id="inp-star-pts" min="3" max="20" value="5" style="width:55px;">
+              <input type="number" id="inp-star-pts" min="3" max="20" value="5" class="width-55">
               <span class="prop-label">In</span>
-              <input type="number" id="inp-star-inner" min="1" max="100" value="50" style="width:55px;">
+              <input type="number" id="inp-star-inner" min="1" max="100" value="50" class="width-55">
               <span class="prop-val">%</span>
             </div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;">
+            <label class="check-label">
               <input type="checkbox" id="inp-lock-ratio"> Lock Ratio
             </label>
           </div>
@@ -677,7 +737,7 @@ header{
             <div class="prop-row">
               <span class="prop-label">Fill</span>
               <input type="color" id="inp-fill" value="#000000">
-              <select id="inp-fill-type" style="flex:1;">
+              <select id="inp-fill-type" class="flex-1">
                 <option value="solid">Solid</option>
                 <option value="none">None</option>
                 <option value="linear">Linear Grad</option>
@@ -687,8 +747,8 @@ header{
             <div class="prop-row">
               <span class="prop-label">Strk</span>
               <input type="color" id="inp-stroke" value="#ffffff">
-              <input type="number" id="inp-stroke-width" value="0" min="0" style="width:45px;">
-              <select id="inp-stroke-style" style="flex:1;">
+              <input type="number" id="inp-stroke-width" value="0" min="0" class="width-45">
+              <select id="inp-stroke-style" class="flex-1">
                 <option value="solid">Solid</option>
                 <option value="dashed">Dash</option>
                 <option value="dotted">Dot</option>
@@ -696,13 +756,13 @@ header{
             </div>
             <div class="prop-row">
               <span class="prop-label">Cap</span>
-              <select id="inp-stroke-cap" style="flex:1;">
+              <select id="inp-stroke-cap" class="flex-1">
                 <option value="butt">Butt</option>
                 <option value="round">Round</option>
                 <option value="square">Square</option>
               </select>
               <span class="prop-label">Join</span>
-              <select id="inp-stroke-join" style="flex:1;">
+              <select id="inp-stroke-join" class="flex-1">
                 <option value="miter">Miter</option>
                 <option value="round">Round</option>
                 <option value="bevel">Bevel</option>
@@ -710,12 +770,12 @@ header{
             </div>
             <div class="prop-row">
               <span class="prop-label">Opac</span>
-              <input type="range" id="inp-opacity" min="0" max="1" step=".01" value="1" style="flex:1;">
+              <input type="range" id="inp-opacity" min="0" max="1" step=".01" value="1" class="flex-1">
               <span class="prop-val" id="lbl-opacity">100%</span>
             </div>
             <div class="prop-row">
               <span class="prop-label">Mix</span>
-              <select id="inp-blend" style="flex:1;">
+              <select id="inp-blend" class="flex-1">
                 <option value="normal">Normal</option>
                 <option value="multiply">Multiply</option>
                 <option value="screen">Screen</option>
@@ -738,37 +798,37 @@ header{
           <div class="prop-section" id="gradient-editor" style="display:none;">
             <div class="section-title">Gradient</div>
             <div id="grad-stops"></div>
-            <button class="btn btn-sm" onclick="App.addGradientStop()" style="margin-top:6px;width:100%;">+ Add Stop</button>
+            <button class="btn btn-sm mt-6 width-100" onclick="App.addGradientStop()">+ Add Stop</button>
             <div class="gradient-preview" id="grad-preview"></div>
-            <div class="prop-row" style="margin-top:8px;">
+            <div class="prop-row mt-8">
               <span class="prop-label">Angle</span>
-              <input type="number" id="grad-angle" value="0" min="0" max="360" style="flex:1;">
+              <input type="number" id="grad-angle" value="0" min="0" max="360" class="flex-1">
             </div>
           </div>
 
           <!-- SHADOW & FILTER -->
           <div class="prop-section">
             <div class="section-title">Effects</div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;margin-bottom:6px;">
+            <label class="check-label mb-8">
               <input type="checkbox" id="eff-shadow"> Drop Shadow
             </label>
             <div id="shadow-opts" style="display:none;">
               <div class="prop-row">
-                <span class="prop-label">X</span><input type="number" id="shad-x" value="4" style="flex:1;">
-                <span class="prop-label">Y</span><input type="number" id="shad-y" value="4" style="flex:1;">
+                <span class="prop-label">X</span><input type="number" id="shad-x" value="4" class="flex-1">
+                <span class="prop-label">Y</span><input type="number" id="shad-y" value="4" class="flex-1">
               </div>
               <div class="prop-row">
-                <span class="prop-label">Blur</span><input type="number" id="shad-blur" value="4" min="0" style="flex:1;">
+                <span class="prop-label">Blur</span><input type="number" id="shad-blur" value="4" min="0" class="flex-1">
                 <span class="prop-label">Col</span><input type="color" id="shad-color" value="#000000">
               </div>
             </div>
-            <label style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;margin-bottom:6px;">
+            <label class="check-label mb-8">
               <input type="checkbox" id="eff-blur"> Blur
             </label>
             <div id="blur-opts" style="display:none;">
               <div class="prop-row">
                 <span class="prop-label">Amt</span>
-                <input type="range" id="blur-amount" min="0" max="20" value="2" step=".5" style="flex:1;">
+                <input type="range" id="blur-amount" min="0" max="20" value="2" step=".5" class="flex-1">
                 <span class="prop-val" id="lbl-blur">2px</span>
               </div>
             </div>
@@ -777,7 +837,7 @@ header{
           <!-- ACTIONS -->
           <div class="prop-section">
             <div class="section-title">Actions</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;">
+            <div class="grid-2-col mb-8">
               <button class="btn btn-sm" id="btn-topath" data-tip="Convert to Path"><i class="fas fa-vector-square"></i> Path</button>
               <button class="btn btn-sm" id="btn-group" data-tip="Group (Ctrl+G)"><i class="fas fa-object-group"></i> Group</button>
               <button class="btn btn-sm" id="btn-ungroup" data-tip="Ungroup (Ctrl+Shift+G)"><i class="fas fa-object-ungroup"></i> Ungroup</button>
@@ -788,8 +848,8 @@ header{
               <button class="btn btn-sm" id="btn-bwd"><i class="fas fa-angle-down"></i> Bwd</button>
             </div>
             <!-- Align -->
-            <div class="section-title" style="margin-top:4px;">Align & Distribute</div>
-            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-bottom:6px;">
+            <div class="section-title mt-4">Align & Distribute</div>
+            <div class="grid-6-col mb-8">
               <button class="btn btn-sm" onclick="App.alignSelected('left')" data-tip="Align Left"><i class="fas fa-align-left"></i></button>
               <button class="btn btn-sm" onclick="App.alignSelected('center-h')" data-tip="Center H"><i class="fas fa-align-center"></i></button>
               <button class="btn btn-sm" onclick="App.alignSelected('right')" data-tip="Align Right"><i class="fas fa-align-right"></i></button>
@@ -799,15 +859,15 @@ header{
             </div>
             <!-- Boolean ops -->
             <div class="section-title">Boolean Ops</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
+            <div class="grid-2-col">
               <button class="btn btn-sm" onclick="App.boolOp('unite')"><i class="fas fa-plus"></i> Unite</button>
               <button class="btn btn-sm" onclick="App.boolOp('intersect')"><i class="fas fa-circle"></i> Intersect</button>
               <button class="btn btn-sm" onclick="App.boolOp('subtract')"><i class="fas fa-minus"></i> Subtract</button>
               <button class="btn btn-sm" onclick="App.boolOp('exclude')"><i class="fas fa-exchange-alt"></i> Exclude</button>
             </div>
-            <div style="margin-top:8px;display:flex;gap:5px;">
-              <button class="btn btn-sm" id="btn-dup" style="flex:1;"><i class="fas fa-copy"></i> Duplicate</button>
-              <button class="btn btn-sm btn-danger" id="btn-del" style="flex:1;"><i class="fas fa-trash"></i> Delete</button>
+            <div class="flex-row-gap5 mt-8">
+              <button class="btn btn-sm flex-1" id="btn-dup"><i class="fas fa-copy"></i> Duplicate</button>
+              <button class="btn btn-sm btn-danger flex-1" id="btn-del"><i class="fas fa-trash"></i> Delete</button>
             </div>
           </div>
         </div>
@@ -829,7 +889,7 @@ header{
       <div class="pane" id="pane-assets">
         <div class="prop-section">
           <div class="section-title">Shapes Library</div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;">
+          <div class="grid-4-col">
             <button class="btn btn-sm" onclick="App.insertShape('arrow-right')" data-tip="Arrow Right"><i class="fas fa-arrow-right"></i></button>
             <button class="btn btn-sm" onclick="App.insertShape('arrow-double')" data-tip="Double Arrow"><i class="fas fa-arrows-alt-h"></i></button>
             <button class="btn btn-sm" onclick="App.insertShape('speech-bubble')" data-tip="Speech Bubble"><i class="far fa-comment"></i></button>
@@ -848,7 +908,7 @@ header{
           <div class="section-title">Artboard</div>
           <div class="form-group">
             <label>Background Color</label>
-            <input type="color" id="art-bg-color" value="#ffffff" style="width:100%;height:32px;">
+            <input type="color" id="art-bg-color" value="#ffffff" class="width-100" style="height:32px;">
           </div>
           <div class="form-group">
             <label>Width</label>
@@ -858,26 +918,26 @@ header{
             <label>Height</label>
             <input type="number" id="art-h-inp" value="1080">
           </div>
-          <button class="btn btn-sm" onclick="App.resizeArtboard(parseInt(document.getElementById('art-w-inp').value),parseInt(document.getElementById('art-h-inp').value))" style="width:100%;">Apply Size</button>
+          <button class="btn btn-sm width-100" onclick="App.resizeArtboard(parseInt(document.getElementById('art-w-inp').value),parseInt(document.getElementById('art-h-inp').value))">Apply Size</button>
         </div>
         <div class="prop-section">
           <div class="section-title">View</div>
-          <div style="display:flex;flex-direction:column;gap:5px;">
-            <label style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;">
+          <div class="flex-col-gap5">
+            <label class="check-label">
               <input type="checkbox" id="tog-grid"> Show Grid
             </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;">
+            <label class="check-label">
               <input type="checkbox" id="tog-rulers"> Show Rulers
             </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;">
+            <label class="check-label">
               <input type="checkbox" id="tog-snap"> Snap to Grid
             </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:9px;color:var(--c-muted);cursor:pointer;">
+            <label class="check-label">
               <input type="checkbox" id="tog-snap-obj"> Snap to Objects
             </label>
-            <div class="prop-row" style="margin-top:4px;">
+            <div class="prop-row mt-4">
               <span class="prop-label">Grid</span>
-              <input type="number" id="grid-size-inp" value="20" min="2" style="flex:1;">
+              <input type="number" id="grid-size-inp" value="20" min="2" class="flex-1">
             </div>
           </div>
         </div>
@@ -888,16 +948,16 @@ header{
 
 <!-- STATUS BAR -->
 <footer id="status-bar">
-  <div style="display:flex;gap:16px;align-items:center;">
+  <div class="status-left">
     <div class="status-item"><i class="fas fa-circle" style="font-size:7px;color:var(--c-accent);"></i> <span id="status-msg">Ready</span></div>
     <div class="status-item">Pos: <span id="status-pos">0, 0</span></div>
     <div class="status-item">Size: <span id="status-size">—</span></div>
   </div>
-  <div style="display:flex;gap:12px;align-items:center;">
+  <div class="status-right">
     <div class="status-item">Layers: <span id="status-layers">0</span></div>
     <div class="status-item">Zoom: <span id="zoom-level">100%</span></div>
-    <button class="btn btn-sm" onclick="App.centerView()" style="padding:2px 6px;font-size:9px;">FIT</button>
-    <button class="btn btn-sm" onclick="App.setZoom(1)" style="padding:2px 6px;font-size:9px;">1:1</button>
+    <button class="btn btn-sm status-fit-btn" onclick="App.centerView()">FIT</button>
+    <button class="btn btn-sm status-fit-btn" onclick="App.setZoom(1)">1:1</button>
   </div>
 </footer>
 
@@ -926,10 +986,10 @@ header{
     <div class="modal-body">
       <div class="form-group"><label>Filename</label><input type="text" id="exp-filename" value="artwork"></div>
       <div class="form-group">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:11px;">
+        <label class="check-label-lg">
           <input type="checkbox" id="exp-clean" checked> Clean export (remove editor classes)
         </label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:11px;margin-top:5px;">
+        <label class="check-label-lg" style="margin-top:5px;">
           <input type="checkbox" id="exp-embed"> Embed fonts
         </label>
       </div>
@@ -972,8 +1032,9 @@ const U = {
     const c = document.getElementById('toast-container');
     const t = document.createElement('div');
     t.className = 'toast';
-    if (type === 'error') { t.style.borderColor = 'var(--c-danger)'; t.style.boxShadow = '4px 4px 0 var(--c-danger)'; t.style.color = 'var(--c-danger)'; }
-    if (type === 'warn') { t.style.borderColor = 'var(--c-accent2)'; t.style.boxShadow = '4px 4px 0 var(--c-accent2)'; t.style.color = 'var(--c-accent2)'; }
+    if (type === 'error') { t.className += ' toast-error'; }
+    else if (type === 'warn') { t.className += ' toast-warn'; }
+    else if (type === 'info') { t.className += ' toast-info'; }
     t.textContent = msg; c.appendChild(t);
     setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(-8px)'; t.style.transition='all .3s'; setTimeout(() => t.remove(), 300); }, 2200);
   },
@@ -1092,7 +1153,7 @@ class InklingApp {
     // palette
     this.quickColors = ['#000000','#ffffff','#ff3355','#00ffaa','#ffde59','#23c9ff','#ff8c00','#9966ff','#ff90e8','#666666'];
 
-    this.fonts = ['Arial','Helvetica','Times New Roman','Courier New','Georgia','Verdana','Impact','Trebuchet MS','Montserrat','Oswald','Bebas Neue','Playfair Display','Pacifico','Caveat','JetBrains Mono'];
+    this.fonts = ['Arial','Helvetica','Times New Roman','Courier New','Georgia','Verdana','Impact','Trebuchet MS','Montserrat','Playfair Display','JetBrains Mono'];
 
     this.ui = {
       switchTab: (tab) => {
@@ -1125,7 +1186,7 @@ class InklingApp {
   // ── THEME ──
   cycleTheme() {
     const modes = ['auto','light','dark'];
-    let cur = localStorage.getItem('inkling_theme_mode') || 'dark';
+    let cur = localStorage.getItem('inkling_theme_mode') || 'auto';
     let idx = modes.indexOf(cur);
     if (idx === -1) idx = 1;
     let next = modes[(idx + 1) % modes.length];
@@ -1233,7 +1294,7 @@ class InklingApp {
     palettes.forEach(p => {
       const div = document.createElement('div');
       div.style.marginBottom = '8px';
-      div.innerHTML = `<div style="font-size:8px;color:var(--c-muted);font-family:var(--font-head);margin-bottom:3px;">${p.name}</div><div style="display:flex;gap:3px;">`;
+      div.innerHTML = `<div class="palette-name">${p.name}</div><div class="palette-colors">`;
       p.colors.forEach(c => {
         const sw = document.createElement('div');
         sw.className = 'csw'; sw.style.background = c; sw.style.flexShrink = '0';
@@ -2105,7 +2166,7 @@ class InklingApp {
       const isLocked = this._lockedIds.has(el.id);
       row.className = `layer-item${isSelected?' active':''}${isHidden?' hidden-layer':''}`;
 
-      const iconMap = { rect:'fa-square', ellipse:'fa-circle', circle:'fa-circle', text:'fa-font', path:'fa-bezier-curve', image:'fa-image', g:'fa-object-group', line:'fa-minus' };
+      const iconMap = { rect:'fa-square', ellipse:'fa-circle', circle:'fa-circle', text:'fa-font', path:'fa-project-diagram', image:'fa-image', g:'fa-object-group', line:'fa-minus' };
       const icon = iconMap[el.tagName] || 'fa-shapes';
       let name = el.tagName;
       if (el.tagName === 'text') name = el.textContent.substring(0, 12) || 'Text';
@@ -2600,12 +2661,14 @@ class InklingApp {
     const guide = document.getElementById('guide-layer');
     guide.innerHTML = '';
     const g = this.snapGrid;
+    const majorStroke = U.getCSSVar('--c-border-bright') || '#333';
+    const minorStroke = U.getCSSVar('--c-border') || '#1e1e1e';
     for (let x = 0; x <= this.artW; x += g) {
-      const line = U.ns('line', { x1: x, y1: 0, x2: x, y2: this.artH, stroke: x % (g * 5) === 0 ? '#333' : '#1e1e1e', 'stroke-width': '0.5' });
+      const line = U.ns('line', { x1: x, y1: 0, x2: x, y2: this.artH, stroke: x % (g * 5) === 0 ? majorStroke : minorStroke, 'stroke-width': '0.5' });
       guide.appendChild(line);
     }
     for (let y = 0; y <= this.artH; y += g) {
-      const line = U.ns('line', { x1: 0, y1: y, x2: this.artW, y2: y, stroke: y % (g * 5) === 0 ? '#333' : '#1e1e1e', 'stroke-width': '0.5' });
+      const line = U.ns('line', { x1: 0, y1: y, x2: this.artW, y2: y, stroke: y % (g * 5) === 0 ? majorStroke : minorStroke, 'stroke-width': '0.5' });
       guide.appendChild(line);
     }
   }
@@ -2626,9 +2689,12 @@ class InklingApp {
     rh.width = vp.clientWidth; rh.height = 20;
     rv.width = 20; rv.height = vp.clientHeight;
     const drawRuler = (ctx, isH) => {
-      ctx.fillStyle = '#0a0a0a';
+      const bg = U.getCSSVar('--c-panel') || '#0a0a0a';
+      const tick = U.getCSSVar('--c-border-bright') || '#333';
+      const text = U.getCSSVar('--c-muted') || '#666';
+      ctx.fillStyle = bg;
       ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      ctx.strokeStyle = '#333'; ctx.fillStyle = '#666';
+      ctx.strokeStyle = tick; ctx.fillStyle = text;
       ctx.font = '8px Space Mono, monospace';
       const step = this.zoom > 1 ? 50 : this.zoom > 0.5 ? 100 : 200;
       const offset = isH ? this.panX : this.panY;

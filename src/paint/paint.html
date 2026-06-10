@@ -121,7 +121,7 @@ input[type="number"],input[type="text"],select,textarea{
 }
 input:focus,select:focus,textarea:focus{
     border-color:var(--c-accent);box-shadow:4px 4px 0 var(--c-accent);
-    transform:translate(-1px,-1px);
+    outline:2px solid var(--c-accent);outline-offset:-1px;
 }
 
 /* ---- HEADER ---- */
@@ -245,8 +245,7 @@ input:focus,select:focus,textarea:focus{
     background-position:0 0,0 8px,8px -8px,-8px 0;
     overflow:hidden;position:relative;touch-action:none;
 }
-[data-theme="dark"] .viewport{background-color:#333;}
-[data-theme="dark"] .viewport{background-image:linear-gradient(45deg,#3a3a3a 25%,transparent 25%),linear-gradient(-45deg,#3a3a3a 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#3a3a3a 75%),linear-gradient(-45deg,transparent 75%,#3a3a3a 75%);}
+[data-theme="dark"] .viewport{background-color:#333;background-image:linear-gradient(45deg,#3a3a3a 25%,transparent 25%),linear-gradient(-45deg,#3a3a3a 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#3a3a3a 75%),linear-gradient(-45deg,transparent 75%,#3a3a3a 75%);}
 
 #canvas-wrapper{
     position:absolute;top:0;left:0;
@@ -279,17 +278,13 @@ canvas.active-canvas{pointer-events:auto;}
     position:absolute;pointer-events:none;display:none;z-index:1000;
     border:2px dashed #000;
     background:rgba(35,201,255,.12);
-    animation:march-ants .5s steps(8) infinite;
+    outline:2px dashed rgba(255,255,255,.8);
+    outline-offset:-2px;
+    animation:march-ants .6s linear infinite;
 }
 @keyframes march-ants{
-    to{border-image:repeating-linear-gradient(90deg,#000 0,#000 5px,transparent 5px,transparent 10px) 1/1px/0 round;
-    border-image:none;}
-}
-/* Marching ants via background */
-#selection-overlay::after{
-    content:'';position:absolute;inset:-1px;
-    border:1px dashed rgba(255,255,255,.8);
-    animation:march-ants-white .5s steps(8) infinite reverse;
+    0%{outline-offset:-2px;}
+    100%{outline-offset:4px;}
 }
 
 /* Move handles */
@@ -613,14 +608,167 @@ canvas.active-canvas{pointer-events:auto;}
     transform:translate(-50%,-50%);display:none;
     mix-blend-mode:difference;
 }
+
+/* ===========================
+   VISUAL IMPROVEMENTS (Neo-Brutalist)
+   =========================== */
+
+/* Tool buttons: more dramatic shadow transitions */
+.btn[data-tool]{
+    transition:transform .12s cubic-bezier(.25,.46,.45,.94),
+               box-shadow .12s cubic-bezier(.25,.46,.45,.94),
+               background .1s,border-color .1s;
+}
+.btn[data-tool]:hover{
+    transform:translate(-3px,-3px);
+    box-shadow:6px 6px 0 var(--c-border);
+}
+.btn[data-tool]:active{
+    transform:translate(2px,2px);
+    box-shadow:1px 1px 0 var(--c-border);
+}
+
+/* Active tool button: thicker border + background highlight */
+.btn[data-tool].active{
+    border-width:4px;
+    background:var(--c-primary);
+    color:#000;
+    box-shadow:4px 4px 0 var(--c-border);
+    transform:translate(-2px,-2px);
+}
+
+/* Color-coded left borders on toolbar section groups */
+.tool-group{position:relative;padding-left:10px;}
+.tool-group::before{
+    content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+    background:var(--c-accent);
+}
+.tool-group:nth-child(2)::before{background:var(--c-primary);}
+.tool-group:nth-child(3)::before{background:var(--c-secondary);}
+.tool-group:nth-child(4)::before{background:var(--c-success);}
+.tool-group:nth-child(5)::before{background:var(--c-warn);}
+.tool-group:nth-child(6)::before{background:var(--c-danger);}
+.tool-group:nth-child(n+7)::before{background:var(--c-accent);}
+
+/* Brush preview: visible border ring */
+#brush-preview{
+    position:relative;
+}
+#brush-preview::after{
+    content:'';position:absolute;inset:0;
+    border:2px solid var(--c-accent);pointer-events:none;
+    border-radius:2px;opacity:.6;
+}
+.brush-dot{
+    border:3px solid var(--c-accent) !important;
+    box-shadow:0 0 0 2px var(--c-text),0 0 8px rgba(35,201,255,.4) !important;
+}
+
+/* Layer panel items: left color stripe indicator */
+.layer-item{
+    position:relative;
+    border-left:4px solid var(--c-accent);
+}
+.layer-item:nth-child(4n+1){border-left-color:var(--c-primary);}
+.layer-item:nth-child(4n+2){border-left-color:var(--c-secondary);}
+.layer-item:nth-child(4n+3){border-left-color:var(--c-accent);}
+.layer-item:nth-child(4n){border-left-color:var(--c-success);}
+
+/* Dramatic double-shadow on canvas wrapper */
+#canvas-wrapper{
+    box-shadow:
+        8px 8px 0 rgba(0,0,0,.5),
+        14px 14px 0 rgba(0,0,0,.2) !important;
+}
+
+/* Modal animations: spring-like cubic-bezier */
+.modal-box{
+    animation:modal-spring .35s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-overlay{
+    animation:modal-fade .2s ease-out;
+}
+@keyframes modal-spring{
+    from{transform:scale(.88) translateY(20px);opacity:0}
+    to{transform:scale(1) translateY(0);opacity:1}
+}
+@keyframes modal-fade{
+    from{opacity:0}
+    to{opacity:1}
+}
+
+/* Menubar items: colored backgrounds on hover */
+.menu-item:hover{background:var(--c-accent);color:#000;transform:translateY(-1px);}
+
+/* Active right panel tab: colored top border */
+.rp-tab{position:relative;border-top:3px solid transparent;}
+.rp-tab.active{border-top-color:var(--c-accent);}
+.rp-tab:hover{border-top-color:var(--c-primary);}
+
+/* ===========================
+   PERFORMANCE OPTIMIZATIONS
+   =========================== */
+#canvas-wrapper{will-change:transform;}
+.viewport{contain:paint;touch-action:none;}
+.right-panel,.toolbar{contain:layout;}
+.rp-pane:not(.active){content-visibility:auto;contain-intrinsic-size:0 400px;}
+
+/* ===========================
+   CODE CLEANUP: FOCUS & A11Y
+   =========================== */
+.btn:focus-visible{outline:3px solid var(--c-accent);outline-offset:2px;}
+.menu-item:focus-visible{outline:3px solid var(--c-accent);outline-offset:2px;}
+
+/* Utility classes replacing inline styles */
+.version-badge{
+    font-family:var(--font-head);font-size:9px;color:#888;
+    margin-left:4px;letter-spacing:1px;
+}
+.logo-suffix{
+    color:#000;background:#fff;padding:0 4px;
+    border:2px solid #000;box-shadow:2px 2px 0 #000;margin-left:4px;
+}
+.color-box-wrap{position:relative;width:80px;height:50px;flex-shrink:0;}
+.color-box-primary{position:absolute;top:0;left:0;width:34px;height:34px;}
+.color-box-secondary{position:absolute;bottom:0;right:0;width:34px;height:34px;}
+.color-info{display:flex;flex-direction:column;gap:4px;flex:1;}
+.hex-secondary{font-size:10px;opacity:.6;}
+.color-btn-row{display:flex;gap:4px;}
+.color-btn-sm{padding:3px 6px !important;}
+.grid-2-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.label-row{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.checkbox-auto{width:auto !important;}
+.info-section{font-family:var(--font-head);font-size:11px;display:flex;flex-direction:column;gap:8px;}
+.info-label{opacity:.6;}
+.info-mono{font-family:var(--font-ui);font-size:10px;}
+.export-preview{
+    width:100%;height:120px;border:var(--border-w) solid var(--c-border);
+    background:#aaa;overflow:hidden;display:flex;align-items:center;
+    justify-content:center;
+}
+.export-preview-label{font-family:var(--font-head);font-size:10px;opacity:.5;}
+.cpicker-color-row{display:flex;gap:10px;align-items:center;}
+.cpicker-native{width:60px;height:60px;padding:0;border:var(--border-w) solid var(--c-border);cursor:pointer;box-shadow:var(--shadow);}
+.layers-list-flex{flex:1;min-height:60px;}
+.history-list-flex{flex:1;min-height:100px;}
+.bb-swatches-section{width:200px;border-right:var(--border-w) solid var(--c-border);}
+.bb-layers-section{flex:1;border-right:var(--border-w) solid var(--c-border);}
+.modal-sm{max-width:300px;}
+.modal-color{max-width:360px;}
+.btn-reset-adj{background:#000;color:#fff;}
+.shape-margin{margin-top:6px;}
+.text-bold-btn{font-weight:900;}
+.text-italic-btn{font-style:italic;}
+.text-underline-btn{text-decoration:underline;}
+.text-strike-btn{text-decoration:line-through;}
 </style>
 </head>
 <body>
 
 <!-- TOP BAR -->
 <div class="topbar">
-    <div class="logo">PAINT<span style="color:#000;background:#fff;padding:0 4px;border:2px solid #000;box-shadow:2px 2px 0 #000;margin-left:4px;">.WEB</span></div>
-    <span style="font-family:var(--font-head);font-size:9px;color:#888;margin-left:4px;letter-spacing:1px;">v5.0</span>
+    <div class="logo">PAINT<span class="logo-suffix">.WEB</span></div>
+    <span class="version-badge">v5.0</span>
     <button class="btn btn-sm btn-icon" id="mobile-toolbar-toggle" onclick="document.getElementById('toolbar').classList.toggle('open')" data-tip="Toggle Tools"><i class="fas fa-palette"></i></button>
     <button class="btn btn-sm btn-icon" id="mobile-panel-toggle" onclick="document.querySelector('.right-panel').classList.toggle('open')" data-tip="Toggle Panels"><i class="fas fa-layer-group"></i></button>
     <div class="topbar-sep"></div>
@@ -641,7 +789,7 @@ canvas.active-canvas{pointer-events:auto;}
 </div>
 
 <!-- MENU BAR -->
-<div class="menubar">
+<div class="menubar" role="menubar" aria-label="Actions menu">
     <div class="menu-item" onclick="App.selectAll()" data-tip="Ctrl+A">Select All</div>
     <div class="menu-item" onclick="App.clearSelection()">Deselect</div>
     <div class="menu-item" onclick="App.invertSelection()">Invert Sel</div>
@@ -672,32 +820,32 @@ canvas.active-canvas{pointer-events:auto;}
 <div id="app">
 
     <!-- LEFT SIDEBAR -->
-    <nav class="toolbar" id="toolbar">
+    <nav class="toolbar" id="toolbar" role="toolbar" aria-label="Drawing tools">
 
         <!-- TOOLS -->
         <div class="tool-group">
             <div class="section-label">Tools</div>
             <div class="tools-grid">
-                <button class="btn btn-icon active" data-tool="move" data-tip="Move Content (Space+Drag to Pan)"><i class="fas fa-arrows-alt"></i></button>
-                <button class="btn btn-icon" data-tool="select-rect" data-tip="Rect Select (M)"><i class="far fa-object-group"></i></button>
-                <button class="btn btn-icon" data-tool="select-lasso" data-tip="Lasso Select (L)"><i class="fas fa-draw-polygon"></i></button>
-                <button class="btn btn-icon" data-tool="select-magic" data-tip="Magic Wand (W)"><i class="fas fa-magic"></i></button>
-                <button class="btn btn-icon" data-tool="brush" data-tip="Brush (B)"><i class="fas fa-paint-brush"></i></button>
-                <button class="btn btn-icon" data-tool="pencil" data-tip="Pencil (P)"><i class="fas fa-pencil-alt"></i></button>
-                <button class="btn btn-icon" data-tool="eraser" data-tip="Eraser (E)"><i class="fas fa-eraser"></i></button>
-                <button class="btn btn-icon" data-tool="fill" data-tip="Fill (G)"><i class="fas fa-fill-drip"></i></button>
-                <button class="btn btn-icon" data-tool="gradient" data-tip="Gradient"><i class="fas fa-fill"></i></button>
-                <button class="btn btn-icon" data-tool="picker" data-tip="Eyedropper (I)"><i class="fas fa-eye-dropper"></i></button>
-                <button class="btn btn-icon" data-tool="text" data-tip="Text (T)"><i class="fas fa-font"></i></button>
-                <button class="btn btn-icon" data-tool="clone" data-tip="Clone Stamp (S)"><i class="fas fa-stamp"></i></button>
-                <button class="btn btn-icon" data-tool="smudge" data-tip="Smudge"><i class="fas fa-hand-point-up"></i></button>
-                <button class="btn btn-icon" data-tool="blur-tool" data-tip="Blur/Sharpen"><i class="fas fa-adjust"></i></button>
-                <button class="btn btn-icon" data-tool="line" data-tip="Line"><i class="fas fa-minus"></i></button>
-                <button class="btn btn-icon" data-tool="rect-shape" data-tip="Rectangle (U)"><i class="far fa-square"></i></button>
-                <button class="btn btn-icon" data-tool="ellipse" data-tip="Ellipse (O)"><i class="far fa-circle"></i></button>
-                <button class="btn btn-icon" data-tool="polygon" data-tip="Polygon"><i class="fas fa-shapes"></i></button>
-                <button class="btn btn-icon" data-tool="crop" data-tip="Crop (C)"><i class="fas fa-crop-alt"></i></button>
-                <button class="btn btn-icon" data-tool="pan-layer" data-tip="Move Layer (V)"><i class="fas fa-hand-paper"></i></button>
+                <button class="btn btn-icon active" data-tool="move" data-tip="Move Content (Space+Drag to Pan)" aria-label="Move Content"><i class="fas fa-arrows-alt"></i></button>
+                <button class="btn btn-icon" data-tool="select-rect" data-tip="Rect Select (M)" aria-label="Rect Select"><i class="far fa-object-group"></i></button>
+                <button class="btn btn-icon" data-tool="select-lasso" data-tip="Lasso Select (L)" aria-label="Lasso Select"><i class="fas fa-draw-polygon"></i></button>
+                <button class="btn btn-icon" data-tool="select-magic" data-tip="Magic Wand (W)" aria-label="Magic Wand"><i class="fas fa-magic"></i></button>
+                <button class="btn btn-icon" data-tool="brush" data-tip="Brush (B)" aria-label="Brush"><i class="fas fa-paint-brush"></i></button>
+                <button class="btn btn-icon" data-tool="pencil" data-tip="Pencil (P)" aria-label="Pencil"><i class="fas fa-pencil-alt"></i></button>
+                <button class="btn btn-icon" data-tool="eraser" data-tip="Eraser (E)" aria-label="Eraser"><i class="fas fa-eraser"></i></button>
+                <button class="btn btn-icon" data-tool="fill" data-tip="Fill (G)" aria-label="Fill"><i class="fas fa-fill-drip"></i></button>
+                <button class="btn btn-icon" data-tool="gradient" data-tip="Gradient" aria-label="Gradient"><i class="fas fa-fill"></i></button>
+                <button class="btn btn-icon" data-tool="picker" data-tip="Eyedropper (I)" aria-label="Eyedropper"><i class="fas fa-eye-dropper"></i></button>
+                <button class="btn btn-icon" data-tool="text" data-tip="Text (T)" aria-label="Text"><i class="fas fa-font"></i></button>
+                <button class="btn btn-icon" data-tool="clone" data-tip="Clone Stamp (S)" aria-label="Clone Stamp"><i class="fas fa-stamp"></i></button>
+                <button class="btn btn-icon" data-tool="smudge" data-tip="Smudge" aria-label="Smudge"><i class="fas fa-hand-point-up"></i></button>
+                <button class="btn btn-icon" data-tool="blur-tool" data-tip="Blur/Sharpen" aria-label="Blur/Sharpen"><i class="fas fa-adjust"></i></button>
+                <button class="btn btn-icon" data-tool="line" data-tip="Line" aria-label="Line"><i class="fas fa-minus"></i></button>
+                <button class="btn btn-icon" data-tool="rect-shape" data-tip="Rectangle (U)" aria-label="Rectangle"><i class="far fa-square"></i></button>
+                <button class="btn btn-icon" data-tool="ellipse" data-tip="Ellipse (O)" aria-label="Ellipse"><i class="far fa-circle"></i></button>
+                <button class="btn btn-icon" data-tool="polygon" data-tip="Polygon" aria-label="Polygon"><i class="fas fa-shapes"></i></button>
+                <button class="btn btn-icon" data-tool="crop" data-tip="Crop (C)" aria-label="Crop"><i class="fas fa-crop-alt"></i></button>
+                <button class="btn btn-icon" data-tool="pan-layer" data-tip="Move Layer (V)" aria-label="Move Layer"><i class="fas fa-hand-paper"></i></button>
             </div>
         </div>
 
@@ -705,16 +853,16 @@ canvas.active-canvas{pointer-events:auto;}
         <div class="tool-group">
             <div class="section-label">Color</div>
             <div class="color-pair">
-                <div style="position:relative;width:80px;height:50px;flex-shrink:0;">
-                    <div class="color-box" id="color-secondary" style="position:absolute;bottom:0;right:0;width:34px;height:34px;" onclick="App.swapColors()" data-tip="Secondary color (X to swap)"></div>
-                    <div class="color-box" id="color-primary" style="position:absolute;top:0;left:0;width:34px;height:34px;" onclick="App.openColorPicker('primary')" data-tip="Primary color"></div>
+                <div class="color-box-wrap">
+                    <div class="color-box color-box-secondary" id="color-secondary" onclick="App.swapColors()" data-tip="Secondary color (X to swap)"></div>
+                    <div class="color-box color-box-primary" id="color-primary" onclick="App.openColorPicker('primary')" data-tip="Primary color"></div>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
+                <div class="color-info">
                     <span id="hex-display">#000000</span>
-                    <span style="font-size:10px;opacity:.6;" id="hex-secondary">#ffffff</span>
-                    <div style="display:flex;gap:4px;">
-                        <button class="btn btn-sm" onclick="App.swapColors()" style="padding:3px 6px;">⇄ Swap</button>
-                        <button class="btn btn-sm" onclick="App.resetColors()" style="padding:3px 6px;">Default</button>
+                    <span class="hex-secondary" id="hex-secondary">#ffffff</span>
+                    <div class="color-btn-row">
+                        <button class="btn btn-sm color-btn-sm" onclick="App.swapColors()">⇄ Swap</button>
+                        <button class="btn btn-sm color-btn-sm" onclick="App.resetColors()">Default</button>
                     </div>
                 </div>
             </div>
@@ -755,7 +903,7 @@ canvas.active-canvas{pointer-events:auto;}
                     <button class="btn btn-sm" id="btn-fill-shape" onclick="App.setShapeMode('fill')">Fill</button>
                     <button class="btn btn-sm" id="btn-both" onclick="App.setShapeMode('both')">Both</button>
                 </div>
-                <div class="adj-row" style="margin-top:6px;">
+                <div class="adj-row shape-margin">
                     <div class="adj-header"><span>Stroke Width</span></div>
                     <input type="range" id="stroke-width" min="1" max="50" value="3">
                 </div>
@@ -787,10 +935,10 @@ canvas.active-canvas{pointer-events:auto;}
                 <input type="range" id="text-lh" min=".8" max="3" step=".1" value="1.3">
             </div>
             <div class="tools-2-grid">
-                <button class="btn btn-sm" id="btn-bold" onclick="App.toggleTextStyle('bold')" style="font-weight:900;">B</button>
-                <button class="btn btn-sm" id="btn-italic" onclick="App.toggleTextStyle('italic')" style="font-style:italic;">I</button>
-                <button class="btn btn-sm" id="btn-underline" onclick="App.toggleTextStyle('underline')" style="text-decoration:underline;">U</button>
-                <button class="btn btn-sm" id="btn-strike" onclick="App.toggleTextStyle('strike')" style="text-decoration:line-through;">S</button>
+                <button class="btn btn-sm text-bold-btn" id="btn-bold" onclick="App.toggleTextStyle('bold')">B</button>
+                <button class="btn btn-sm text-italic-btn" id="btn-italic" onclick="App.toggleTextStyle('italic')">I</button>
+                <button class="btn btn-sm text-underline-btn" id="btn-underline" onclick="App.toggleTextStyle('underline')">U</button>
+                <button class="btn btn-sm text-strike-btn" id="btn-strike" onclick="App.toggleTextStyle('strike')">S</button>
             </div>
             <!-- Text align -->
             <div class="tools-3-grid">
@@ -825,7 +973,7 @@ canvas.active-canvas{pointer-events:auto;}
             </div>
             <div class="tools-2-grid">
                 <button class="btn btn-sm btn-primary" id="btn-apply-adj">Apply</button>
-                <button class="btn btn-sm" id="btn-reset-adj" style="background:#000;color:#fff;">Reset</button>
+                <button class="btn btn-sm btn-reset-adj" id="btn-reset-adj">Reset</button>
             </div>
         </div>
 
@@ -843,7 +991,7 @@ canvas.active-canvas{pointer-events:auto;}
     </nav>
 
     <!-- VIEWPORT -->
-    <main class="viewport" id="viewport">
+    <main class="viewport" id="viewport" role="main" aria-label="Canvas viewport">
         <div id="canvas-wrapper"></div>
         <div id="selection-overlay"></div>
         <canvas id="ruler-h-canvas" style="position:absolute;top:0;left:18px;right:0;height:18px;z-index:20;pointer-events:none;display:none;"></canvas>
@@ -853,7 +1001,7 @@ canvas.active-canvas{pointer-events:auto;}
     </main>
 
     <!-- RIGHT PANEL -->
-    <aside class="right-panel">
+    <aside class="right-panel" role="complementary" aria-label="Layer and history panels">
         <div class="right-panel-tabs">
             <div class="rp-tab active" data-tab="layers" onclick="App.ui.switchRightTab('layers')">Layers</div>
             <div class="rp-tab" data-tab="history" onclick="App.ui.switchRightTab('history')">History</div>
@@ -895,22 +1043,22 @@ canvas.active-canvas{pointer-events:auto;}
                         <option value="luminosity">Luminosity</option>
                     </select>
                 </div>
-                <div id="layers-list" class="layers-list" style="flex:1;min-height:60px;"></div>
+                <div id="layers-list" class="layers-list layers-list-flex"></div>
             </div>
             <!-- HISTORY TAB -->
             <div class="rp-pane" id="rp-history">
-                <div id="history-list" class="history-list" style="flex:1;min-height:100px;"></div>
+                <div id="history-list" class="history-list history-list-flex"></div>
                 <button class="btn btn-sm btn-danger" onclick="App.history.clearFuture()">Clear Future</button>
             </div>
             <!-- INFO TAB -->
             <div class="rp-pane" id="rp-info">
-                <div style="font-family:var(--font-head);font-size:11px;display:flex;flex-direction:column;gap:8px;">
-                    <div><span style="opacity:.6;">CANVAS</span><br><span id="info-size">—</span></div>
-                    <div><span style="opacity:.6;">LAYERS</span><br><span id="info-layers">—</span></div>
-                    <div><span style="opacity:.6;">ZOOM</span><br><span id="info-zoom">—</span></div>
-                    <div><span style="opacity:.6;">CURSOR</span><br><span id="info-cursor">—</span></div>
-                    <div><span style="opacity:.6;">PIXEL</span><br><span id="info-pixel" style="font-family:var(--font-ui);font-size:10px;">—</span></div>
-                    <div><span style="opacity:.6;">MEMORY</span><br><span id="info-mem">—</span></div>
+                <div class="info-section">
+                    <div><span class="info-label">CANVAS</span><br><span id="info-size">—</span></div>
+                    <div><span class="info-label">LAYERS</span><br><span id="info-layers">—</span></div>
+                    <div><span class="info-label">ZOOM</span><br><span id="info-zoom">—</span></div>
+                    <div><span class="info-label">CURSOR</span><br><span id="info-cursor">—</span></div>
+                    <div><span class="info-label">PIXEL</span><br><span id="info-pixel" class="info-mono">—</span></div>
+                    <div><span class="info-label">MEMORY</span><br><span id="info-mem">—</span></div>
                 </div>
             </div>
         </div>
@@ -919,14 +1067,14 @@ canvas.active-canvas{pointer-events:auto;}
 
 <!-- BOTTOM BAR -->
 <div class="bottom-bar">
-    <div class="bb-section" id="bb-swatches" style="width:200px;border-right:var(--border-w) solid var(--c-border);">
+    <div class="bb-section bb-swatches-section" id="bb-swatches">
         <div class="bb-header">
             <span><i class="fas fa-palette"></i> Swatches</span>
             <button class="btn btn-sm" onclick="App.addCurrentSwatch()" data-tip="Add current color">+</button>
         </div>
-        <div id="swatches" style="flex:1;"></div>
+        <div id="swatches" class="layers-list-flex"></div>
     </div>
-    <div class="bb-section" style="flex:1;border-right:var(--border-w) solid var(--c-border);" id="bb-layers-bottom">
+    <div class="bb-section bb-layers-section" id="bb-layers-bottom">
         <div class="bb-header"><span><i class="fas fa-layer-group"></i> Layer Details</span></div>
         <div id="layers-list-bottom" class="layers-list"></div>
     </div>
@@ -952,7 +1100,7 @@ canvas.active-canvas{pointer-events:auto;}
     <div class="modal-box">
         <div class="modal-header"><span>New Canvas</span><span class="modal-close" onclick="App.ui.closeModal()">✕</span></div>
         <div class="modal-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="grid-2-col">
                 <div><label>Width (px)</label><input type="number" id="new-w" value="1280"></div>
                 <div><label>Height (px)</label><input type="number" id="new-h" value="720"></div>
             </div>
@@ -988,15 +1136,15 @@ canvas.active-canvas{pointer-events:auto;}
     <div class="modal-box">
         <div class="modal-header"><span>Canvas Size</span><span class="modal-close" onclick="App.ui.closeModal()">✕</span></div>
         <div class="modal-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="grid-2-col">
                 <div><label>Width (px)</label><input type="number" id="inp-w" value="1280"></div>
                 <div><label>Height (px)</label><input type="number" id="inp-h" value="720"></div>
             </div>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                <input type="checkbox" id="resize-scale" style="width:auto;"> Scale content
+            <label class="label-row">
+                <input type="checkbox" id="resize-scale" class="checkbox-auto"> Scale content
             </label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                <input type="checkbox" id="resize-center" style="width:auto;" checked> Center content
+            <label class="label-row">
+                <input type="checkbox" id="resize-center" class="checkbox-auto" checked> Center content
             </label>
         </div>
         <div class="modal-footer">
@@ -1023,11 +1171,11 @@ canvas.active-canvas{pointer-events:auto;}
                 <div class="adj-header"><span>Quality</span><span id="exp-qual-val">95%</span></div>
                 <input type="range" id="exp-qual" min="10" max="100" value="95" oninput="document.getElementById('exp-qual-val').innerText=this.value+'%'">
             </div>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-                <input type="checkbox" id="exp-flat" style="width:auto;" checked> Flatten layers
+            <label class="label-row">
+                <input type="checkbox" id="exp-flat" class="checkbox-auto" checked> Flatten layers
             </label>
-            <div id="export-preview" style="width:100%;height:120px;border:var(--border-w) solid var(--c-border);background:#aaa;overflow:hidden;display:flex;align-items:center;justify-content:center;">
-                <span style="font-family:var(--font-head);font-size:10px;opacity:.5;">Preview</span>
+            <div class="export-preview" id="export-preview">
+                <span class="export-preview-label">Preview</span>
             </div>
         </div>
         <div class="modal-footer">
@@ -1069,11 +1217,11 @@ canvas.active-canvas{pointer-events:auto;}
 
 <!-- COLOR PICKER MODAL -->
 <div class="modal-overlay hidden" id="modal-color">
-    <div class="modal-box" style="max-width:360px;">
+    <div class="modal-box modal-color">
         <div class="modal-header"><span id="cpicker-title">Primary Color</span><span class="modal-close" onclick="App.ui.closeModal()">✕</span></div>
         <div class="modal-body">
-            <div style="display:flex;gap:10px;align-items:center;">
-                <input type="color" id="cpicker-native" style="width:60px;height:60px;padding:0;border:var(--border-w) solid var(--c-border);cursor:pointer;box-shadow:var(--shadow);">
+            <div class="cpicker-color-row">
+                <input type="color" id="cpicker-native" class="cpicker-native">
                 <div style="flex:1;">
                     <input type="text" id="cpicker-hex" value="#000000" placeholder="#RRGGBB" style="text-transform:uppercase;">
                 </div>
@@ -1100,7 +1248,7 @@ canvas.active-canvas{pointer-events:auto;}
 
 <!-- LAYER NAME EDIT -->
 <div class="modal-overlay hidden" id="modal-rename">
-    <div class="modal-box" style="max-width:300px;">
+    <div class="modal-box modal-sm">
         <div class="modal-header"><span>Rename Layer</span><span class="modal-close" onclick="App.ui.closeModal()">✕</span></div>
         <div class="modal-body">
             <input type="text" id="rename-input" value="">

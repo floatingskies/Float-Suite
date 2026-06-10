@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFDE59">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
 // Auto Dark/Light Mode — runs before body renders
 (function(){
@@ -219,12 +219,7 @@ header{
 .header-right{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0;}
 
 /* ---- FIND-REPLACE ---- */
-.find-bar{
-  background:var(--c-panel);border-bottom:var(--border-w) solid var(--c-border);
-  padding:8px 16px;display:none;gap:8px;align-items:center;flex-wrap:wrap;
-  flex-shrink:0;
-}
-.find-bar.open{display:flex;}
+/* Find-replace — see dramatic overrides below */
 .find-bar input{
   flex:1;min-width:100px;max-width:180px;padding:6px 10px;
   border:var(--border-w) solid var(--c-border);
@@ -245,12 +240,14 @@ header{
   display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;
   scrollbar-width:thin;scrollbar-color:#000 transparent;
   transition:transform .3s;
+  contain:layout;
 }
 #sidebar::-webkit-scrollbar{width:6px;}
 #sidebar::-webkit-scrollbar-thumb{background:#000;}
 
 .sidebar-section{
   padding:14px;border-bottom:var(--border-w) solid var(--c-border);
+  content-visibility:auto;contain-intrinsic-size:0 200px;
 }
 .sidebar-section:last-child{border-bottom:none;}
 .sidebar-title{
@@ -344,11 +341,12 @@ header{
   background-image:radial-gradient(circle at 1px 1px,var(--c-border) 1px,transparent 0);
   background-size:20px 20px;background-color:var(--c-bg);
   position:relative;
+  contain:paint;
 }
 /* Fix: dots should be subtle */
 #workspace::before{
   content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:radial-gradient(circle at 1px 1px,rgba(0,0,0,.12) 1px,transparent 0);
+  background-image:radial-gradient(circle at 1px 1px,rgba(128,128,128,.15) 1px,transparent 0);
   background-size:20px 20px;z-index:0;
 }
 
@@ -356,9 +354,16 @@ header{
 #paper{
   width:210mm;min-height:297mm;background:#fff;
   border:var(--border-w) solid var(--c-border);
-  box-shadow:var(--shadow-lg);position:relative;
+  box-shadow:var(--shadow-lg),12px 12px 0 rgba(0,0,0,.15);position:relative;
   margin-bottom:40px;transform-origin:top center;
   transition:transform .2s;z-index:1;
+  will-change:transform;
+}
+/* Paper texture overlay */
+#paper::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+  opacity:.4;mix-blend-mode:multiply;
 }
 #paper.style-abnt{--paper-font:'Arial,Helvetica,sans-serif';--paper-size:12pt;--paper-lh:1.5;}
 #paper.style-apa{--paper-font:"'Times New Roman',serif";--paper-size:12pt;--paper-lh:2;}
@@ -431,24 +436,10 @@ header{
 ::selection{background:rgba(255,222,89,.5);}
 mark.search-highlight{background:#FFDE59;color:#000;}
 
-/* Zoom controls */
+/* Zoom controls — see brutalist overrides below */
 .zoom-controls{
   position:fixed;bottom:50px;right:16px;
   display:flex;flex-direction:column;gap:4px;z-index:50;
-}
-.zoom-btn{
-  width:34px;height:34px;background:var(--c-panel);
-  border:var(--border-w) solid var(--c-border);
-  box-shadow:var(--shadow-sm);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-head);font-size:14px;
-  transition:background .1s,transform .1s;
-}
-.zoom-btn:hover{background:var(--c-primary);transform:translate(-1px,-1px);}
-#zoom-level{
-  font-family:var(--font-head);font-size:9px;text-align:center;
-  padding:3px;border:var(--border-w) solid var(--c-border);
-  background:var(--c-panel);box-shadow:var(--shadow-sm);
 }
 
 /* ---- FOOTER ---- */
@@ -557,26 +548,17 @@ body.zen-mode header,
 body.zen-mode footer,
 body.zen-mode .zoom-controls,
 body.zen-mode .find-bar{display:none!important;}
-body.zen-mode #workspace{padding:20px;background:#666;}
+body.zen-mode #workspace{padding:20px;background:var(--c-bg);}
 .zen-exit{
   position:fixed;top:14px;right:14px;z-index:9999;
   display:none;
 }
 body.zen-mode .zen-exit{display:flex;}
 
-/* Mobile */
-@media(max-width:768px){
-  :root{--sidebar-w:270px;}
-  #sidebar{position:fixed;height:100%;z-index:200;transform:translateX(-100%);}
-  #sidebar.open{transform:translateX(0);}
-  #mobile-btn{display:flex!important;}
-  .rich-toolbar{display:none;}
-}
+/* Mobile button (hidden on desktop) */
 #mobile-btn{display:none;}
 
-/* Progress bar */
-.prog-bar{height:6px;background:var(--c-surface);border:2px solid var(--c-border);margin-top:6px;overflow:hidden;}
-.prog-fill{height:100%;background:var(--c-primary);transition:width .5s;}
+/* Progress bar — see prominent overrides below */
 
 /* Badge */
 .badge{
@@ -693,6 +675,112 @@ body.zen-mode .wc-bar{display:flex;}
   display:flex;align-items:center;justify-content:center;}
 #mobile-floating-toolbar button:active{background:var(--c-primary);}
 
+/* ---- SIDEBAR ICON BADGES (colored) ---- */
+.sidebar-title .icon-badge.icon-badge-docs{background:var(--c-primary);}
+.sidebar-title .icon-badge.icon-badge-std{background:var(--c-accent);}
+.sidebar-title .icon-badge.icon-badge-insert{background:var(--c-success);}
+.sidebar-title .icon-badge.icon-badge-page{background:var(--c-secondary);}
+.sidebar-title .icon-badge.icon-badge-outline{background:var(--c-purple);}
+.sidebar-title .icon-badge.icon-badge-stats{background:var(--c-warn);}
+
+/* ---- STANDARD SELECTOR COLORED BORDERS ---- */
+.std-btn[data-style="abnt"]{border-left:6px solid var(--c-success);}
+.std-btn[data-style="apa"]{border-left:6px solid var(--c-accent);}
+.std-btn[data-style="mla"]{border-left:6px solid var(--c-purple);}
+
+/* ---- TOOLBAR BUTTONS DISTINCT ACTIVE STATES ---- */
+.tb-btn.active{background:var(--c-secondary);transform:scale(1.08);box-shadow:0 0 0 2px var(--c-secondary);}
+.tb-btn:active{background:var(--c-primary);transform:scale(.95);}
+
+/* ---- INSERT BUTTONS COLORED HOVER FILLS ---- */
+.ins-btn:hover i{color:inherit;}
+.ins-btn:nth-child(1):hover{background:#ffe082;} /* Image - yellow */
+.ins-btn:nth-child(2):hover{background:#b2dfdb;} /* Table - teal */
+.ins-btn:nth-child(3):hover{background:#bbdefb;} /* Link - blue */
+.ins-btn:nth-child(4):hover{background:#d1c4e9;} /* Ref - purple */
+.ins-btn:nth-child(5):hover{background:#ffccbc;} /* Note - orange */
+.ins-btn:nth-child(6):hover{background:#c8e6c9;} /* Break - green */
+.ins-btn:nth-child(7):hover{background:#fff9c4;} /* Abstract - light yellow */
+.ins-btn:nth-child(8):hover{background:#b3e5fc;} /* TOC - light blue */
+.ins-btn:nth-child(9):hover{background:#e1bee7;} /* Refs - light purple */
+.ins-btn:nth-child(10):hover{background:#f0e68c;} /* Quote - khaki */
+.ins-btn:nth-child(11):hover{background:#e0e0e0;} /* Line - grey */
+.ins-btn:nth-child(12):hover{background:#c5cae9;} /* Code - indigo */
+
+/* ---- GOAL PROGRESS BAR PROMINENT ---- */
+.prog-bar{height:12px;background:var(--c-surface);border:3px solid var(--c-border);margin-top:8px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--c-success),var(--c-primary));transition:width .5s;position:relative;}
+.prog-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.3),transparent);pointer-events:none;}
+
+/* ---- ZOOM CONTROLS BRUTALIST ---- */
+.zoom-btn{
+  width:40px;height:40px;background:var(--c-panel);
+  border:var(--border-w) solid var(--c-border);
+  box-shadow:4px 4px 0 #000;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-head);font-size:16px;font-weight:900;
+  transition:background .1s,transform .1s,box-shadow .1s;
+}
+.zoom-btn:hover{background:var(--c-primary);transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000;}
+.zoom-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #000;}
+#zoom-level{
+  font-family:var(--font-head);font-size:10px;text-align:center;
+  padding:5px;border:var(--border-w) solid var(--c-border);
+  background:var(--c-panel);box-shadow:3px 3px 0 #000;font-weight:900;
+}
+
+/* ---- FIND-REPLACE BAR DRAMATIC ---- */
+.find-bar{
+  background:var(--c-panel);border-bottom:var(--border-w) solid var(--c-border);
+  padding:0 16px 8px;display:none;gap:8px;align-items:center;flex-wrap:wrap;
+  flex-shrink:0;position:relative;
+}
+.find-bar::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--c-accent),var(--c-primary),var(--c-secondary));
+}
+.find-bar.open{display:flex;}
+
+/* ---- WRITING MODE INDICATOR ---- */
+.writing-indicator{
+  position:fixed;bottom:50px;left:16px;z-index:50;
+  display:flex;align-items:center;gap:6px;
+  background:var(--c-panel);border:var(--border-w) solid var(--c-border);
+  box-shadow:var(--shadow-sm);padding:4px 10px;
+  font-family:var(--font-head);font-size:9px;text-transform:uppercase;
+  opacity:0;transition:opacity .3s;pointer-events:none;
+}
+.writing-indicator.active{opacity:1;}
+.writing-indicator i{color:var(--c-accent);animation:pen-write .6s ease-in-out infinite alternate;}
+@keyframes pen-write{
+  0%{transform:rotate(-10deg) translateY(0);}
+  100%{transform:rotate(10deg) translateY(-2px);}
+}
+
+/* ---- FOCUS-VISIBLE STYLES ---- */
+.btn:focus-visible,.tb-btn:focus-visible,.zoom-btn:focus-visible,.ins-btn:focus-visible,.std-btn:focus-visible{
+  outline:3px solid var(--c-accent);outline-offset:2px;
+}
+
+/* ---- INLINE-STYLE REPLACEMENT CLASSES ---- */
+.logo-suffix{color:#000;background:#fff;padding:0 4px;border:2px solid #000;box-shadow:2px 2px 0 #000;margin-left:4px;}
+.flex-row-gap5{display:flex;gap:5px;}
+.btn-row-mb5{margin-bottom:5px;}
+.find-option-label{display:flex;align-items:center;gap:4px;font-size:9px;cursor:pointer;font-family:var(--font-head);text-transform:uppercase;}
+.modal-header-danger{background:var(--c-danger);}
+.export-label{display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:11px;}
+.export-desc{font-size:11px;color:var(--c-muted);margin-bottom:12px;}
+.ref-actions{margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.ref-format-label{font-size:9px;font-family:var(--font-head);color:var(--c-muted);text-transform:uppercase;}
+.clear-warning{font-size:13px;font-family:var(--font-head);}
+.goal-row{display:flex;justify-content:space-between;font-family:var(--font-head);font-size:9px;text-transform:uppercase;color:var(--c-muted);margin-bottom:4px;}
+.goal-section{margin-top:10px;}
+.img-preview-area{margin-top:10px;display:none;text-align:center;}
+.img-preview-img{max-width:100%;max-height:150px;border:var(--border-w) solid var(--c-border);box-shadow:var(--shadow-sm);}
+.form-row-mt12{margin-top:12px;}
+.doc-icon{font-size:11px;color:var(--c-muted);}
+.outline-empty{font-size:9px;color:var(--c-muted);padding:8px;font-family:var(--font-head);text-transform:uppercase;}
+
 /* ---- PREFERS REDUCED MOTION ---- */
 @media(prefers-reduced-motion:reduce){
   *{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important;}
@@ -723,13 +811,13 @@ body.zen-mode .wc-bar{display:flex;}
     <i class="fas fa-bars"></i>
   </button>
 
-  <div class="logo">THESIS<span style="color:#000;background:#fff;padding:0 4px;border:2px solid #000;box-shadow:2px 2px 0 #000;margin-left:4px;">.WEB</span></div>
+  <div class="logo">THESIS<span class="logo-suffix">.WEB</span></div>
   <span class="logo-badge">PRO v3</span>
 
   <div class="header-sep"></div>
 
   <!-- Rich toolbar -->
-  <div class="rich-toolbar">
+  <div class="rich-toolbar" role="toolbar" aria-label="Text formatting">
     <!-- Text style -->
     <div class="tb-group">
       <select class="tb-select" id="tb-block" onchange="App.formatBlock(this.value)" title="Block type">
@@ -758,13 +846,13 @@ body.zen-mode .wc-bar{display:flex;}
     </div>
     <!-- Format -->
     <div class="tb-group">
-      <button class="tb-btn" id="tb-bold" onclick="App.exec('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
-      <button class="tb-btn" id="tb-italic" onclick="App.exec('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-      <button class="tb-btn" id="tb-under" onclick="App.exec('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
-      <button class="tb-btn" id="tb-strike" onclick="App.exec('strikeThrough')" title="Strikethrough"><s>S</s></button>
+      <button class="tb-btn" id="tb-bold" onclick="App.exec('bold')" title="Bold (Ctrl+B)" aria-label="Bold"><b>B</b></button>
+      <button class="tb-btn" id="tb-italic" onclick="App.exec('italic')" title="Italic (Ctrl+I)" aria-label="Italic"><i>I</i></button>
+      <button class="tb-btn" id="tb-under" onclick="App.exec('underline')" title="Underline (Ctrl+U)" aria-label="Underline"><u>U</u></button>
+      <button class="tb-btn" id="tb-strike" onclick="App.exec('strikeThrough')" title="Strikethrough" aria-label="Strikethrough"><s>S</s></button>
       <div class="tb-sep"></div>
-      <button class="tb-btn" onclick="App.exec('superscript')" title="Superscript"><sup>x²</sup></button>
-      <button class="tb-btn" onclick="App.exec('subscript')" title="Subscript"><sub>x₂</sub></button>
+      <button class="tb-btn" onclick="App.exec('superscript')" title="Superscript" aria-label="Superscript"><sup>x²</sup></button>
+      <button class="tb-btn" onclick="App.exec('subscript')" title="Subscript" aria-label="Subscript"><sub>x₂</sub></button>
     </div>
     <!-- Color -->
     <div class="tb-group">
@@ -773,26 +861,26 @@ body.zen-mode .wc-bar{display:flex;}
     </div>
     <!-- Align -->
     <div class="tb-group">
-      <button class="tb-btn" id="tb-al" onclick="App.exec('justifyLeft')" title="Left"><i class="fas fa-align-left"></i></button>
-      <button class="tb-btn" id="tb-ac" onclick="App.exec('justifyCenter')" title="Center"><i class="fas fa-align-center"></i></button>
-      <button class="tb-btn" id="tb-ar" onclick="App.exec('justifyRight')" title="Right"><i class="fas fa-align-right"></i></button>
-      <button class="tb-btn" id="tb-aj" onclick="App.exec('justifyFull')" title="Justify"><i class="fas fa-align-justify"></i></button>
+      <button class="tb-btn" id="tb-al" onclick="App.exec('justifyLeft')" title="Left" aria-label="Align left"><i class="fas fa-align-left"></i></button>
+      <button class="tb-btn" id="tb-ac" onclick="App.exec('justifyCenter')" title="Center" aria-label="Align center"><i class="fas fa-align-center"></i></button>
+      <button class="tb-btn" id="tb-ar" onclick="App.exec('justifyRight')" title="Right" aria-label="Align right"><i class="fas fa-align-right"></i></button>
+      <button class="tb-btn" id="tb-aj" onclick="App.exec('justifyFull')" title="Justify" aria-label="Justify"><i class="fas fa-align-justify"></i></button>
     </div>
     <!-- Lists -->
     <div class="tb-group">
-      <button class="tb-btn" onclick="App.exec('insertUnorderedList')" title="Bullet list"><i class="fas fa-list-ul"></i></button>
-      <button class="tb-btn" onclick="App.exec('insertOrderedList')" title="Numbered list"><i class="fas fa-list-ol"></i></button>
-      <button class="tb-btn" onclick="App.exec('indent')" title="Indent"><i class="fas fa-indent"></i></button>
-      <button class="tb-btn" onclick="App.exec('outdent')" title="Outdent"><i class="fas fa-outdent"></i></button>
+      <button class="tb-btn" onclick="App.exec('insertUnorderedList')" title="Bullet list" aria-label="Bullet list"><i class="fas fa-list-ul"></i></button>
+      <button class="tb-btn" onclick="App.exec('insertOrderedList')" title="Numbered list" aria-label="Numbered list"><i class="fas fa-list-ol"></i></button>
+      <button class="tb-btn" onclick="App.exec('indent')" title="Indent" aria-label="Indent"><i class="fas fa-indent"></i></button>
+      <button class="tb-btn" onclick="App.exec('outdent')" title="Outdent" aria-label="Outdent"><i class="fas fa-outdent"></i></button>
     </div>
     <!-- Undo/Redo -->
     <div class="tb-group">
-      <button class="tb-btn" onclick="App.exec('undo')" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
-      <button class="tb-btn" onclick="App.exec('redo')" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+      <button class="tb-btn" onclick="App.exec('undo')" title="Undo (Ctrl+Z)" aria-label="Undo"><i class="fas fa-undo"></i></button>
+      <button class="tb-btn" onclick="App.exec('redo')" title="Redo (Ctrl+Y)" aria-label="Redo"><i class="fas fa-redo"></i></button>
     </div>
     <!-- Clear format -->
     <div class="tb-group">
-      <button class="tb-btn" onclick="App.exec('removeFormat')" title="Clear format"><i class="fas fa-remove-format"></i></button>
+      <button class="tb-btn" onclick="App.exec('removeFormat')" title="Clear format" aria-label="Clear formatting"><i class="fas fa-eraser"></i></button>
     </div>
   </div>
 
@@ -814,10 +902,10 @@ body.zen-mode .wc-bar{display:flex;}
   <button class="btn btn-xs" onclick="App.findNext()"><i class="fas fa-arrow-down"></i> Next</button>
   <button class="btn btn-xs" onclick="App.replaceNext()">Replace</button>
   <button class="btn btn-xs" onclick="App.replaceAll()">All</button>
-  <label style="display:flex;align-items:center;gap:4px;font-size:9px;cursor:pointer;font-family:var(--font-head);text-transform:uppercase;">
+  <label class="find-option-label">
     <input type="checkbox" id="find-case"> Case
   </label>
-  <label style="display:flex;align-items:center;gap:4px;font-size:9px;cursor:pointer;font-family:var(--font-head);text-transform:uppercase;">
+  <label class="find-option-label">
     <input type="checkbox" id="find-regex"> RegEx
   </label>
   <button class="btn btn-xs btn-ghost" onclick="App.toggleFindReplace()"><i class="fas fa-times"></i></button>
@@ -827,12 +915,12 @@ body.zen-mode .wc-bar{display:flex;}
 <div id="app-container">
 
   <!-- SIDEBAR -->
-  <aside id="sidebar">
+  <aside id="sidebar" role="navigation" aria-label="Document sidebar">
 
     <!-- Documents -->
     <div class="sidebar-section">
-      <div class="sidebar-title"><div class="icon-badge"><i class="fas fa-folder"></i></div> Documents</div>
-      <div style="display:flex;gap:5px;margin-bottom:8px;">
+      <div class="sidebar-title"><div class="icon-badge icon-badge-docs"><i class="fas fa-folder"></i></div> Documents</div>
+      <div class="flex-row-gap5" style="margin-bottom:8px;">
         <button class="btn btn-xs btn-primary btn-full" onclick="App.openModal('save-modal')"><i class="fas fa-plus"></i> New</button>
         <button class="btn btn-xs btn-full" onclick="App.updateCurrentDoc()" id="btn-save" disabled><i class="fas fa-save"></i> Save</button>
       </div>
@@ -841,7 +929,7 @@ body.zen-mode .wc-bar{display:flex;}
 
     <!-- Standard -->
     <div class="sidebar-section">
-      <div class="sidebar-title"><div class="icon-badge"><i class="fas fa-ruler"></i></div> Standard</div>
+      <div class="sidebar-title"><div class="icon-badge icon-badge-std"><i class="fas fa-ruler"></i></div> Standard</div>
       <button class="std-btn active" data-style="abnt" onclick="App.setStandard('abnt')">
         <div class="std-icon"><i class="fas fa-flag"></i></div>
         <div class="std-info"><div class="std-name">ABNT</div><div class="std-desc">NBR 14724 — Arial 12pt, 1.5</div></div>
@@ -861,7 +949,7 @@ body.zen-mode .wc-bar{display:flex;}
 
     <!-- Insert -->
     <div class="sidebar-section">
-      <div class="sidebar-title"><div class="icon-badge"><i class="fas fa-plus"></i></div> Insert</div>
+      <div class="sidebar-title"><div class="icon-badge icon-badge-insert"><i class="fas fa-plus"></i></div> Insert</div>
       <div class="insert-grid">
         <button class="ins-btn" onclick="App.insertImage()"><i class="fas fa-image"></i>Image</button>
         <button class="ins-btn" onclick="App.insertTable()"><i class="fas fa-table"></i>Table</button>
@@ -880,14 +968,14 @@ body.zen-mode .wc-bar{display:flex;}
 
     <!-- Page -->
     <div class="sidebar-section">
-      <div class="sidebar-title"><div class="icon-badge"><i class="fas fa-file"></i></div> Page</div>
-      <button class="btn btn-sm btn-full" onclick="App.toggleCover()" id="btn-cover" style="margin-bottom:5px;">
+      <div class="sidebar-title"><div class="icon-badge icon-badge-page"><i class="fas fa-file"></i></div> Page</div>
+      <button class="btn btn-sm btn-full btn-row-mb5" onclick="App.toggleCover()" id="btn-cover">
         <i class="fas fa-file-alt"></i> <span id="cover-btn-text">Add Cover Page</span>
       </button>
-      <button class="btn btn-sm btn-full" onclick="App.togglePageNumbers()" id="btn-pgnums" style="margin-bottom:5px;">
+      <button class="btn btn-sm btn-full btn-row-mb5" onclick="App.togglePageNumbers()" id="btn-pgnums">
         <i class="fas fa-list-ol"></i> <span id="pgnums-btn-text">Add Page Numbers</span>
       </button>
-      <button class="btn btn-sm btn-full" onclick="App.openModal('settings-modal')" style="margin-bottom:5px;">
+      <button class="btn btn-sm btn-full btn-row-mb5" onclick="App.openModal('settings-modal')">
         <i class="fas fa-cog"></i> Settings
       </button>
       <button class="btn btn-sm btn-danger btn-full" onclick="App.openModal('clear-modal')">
@@ -897,13 +985,13 @@ body.zen-mode .wc-bar{display:flex;}
 
     <!-- Outline -->
     <div class="sidebar-section">
-      <div class="sidebar-title"><div class="icon-badge"><i class="fas fa-sitemap"></i></div> Outline</div>
+      <div class="sidebar-title"><div class="icon-badge icon-badge-outline"><i class="fas fa-sitemap"></i></div> Outline</div>
       <ul class="outline-list" id="outline-list"></ul>
     </div>
 
     <!-- Statistics -->
     <div class="sidebar-section">
-      <div class="sidebar-title"><div class="icon-badge"><i class="fas fa-chart-bar"></i></div> Statistics</div>
+      <div class="sidebar-title"><div class="icon-badge icon-badge-stats"><i class="fas fa-chart-bar"></i></div> Statistics</div>
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="stat-words">0</div><div class="stat-label">Words</div></div>
         <div class="stat-card"><div class="stat-val" id="stat-chars">0</div><div class="stat-label">Chars</div></div>
@@ -912,8 +1000,8 @@ body.zen-mode .wc-bar{display:flex;}
         <div class="stat-card"><div class="stat-val" id="stat-paras">0</div><div class="stat-label">Paras</div></div>
         <div class="stat-card"><div class="stat-val" id="stat-sents">0</div><div class="stat-label">Sentences</div></div>
       </div>
-      <div style="margin-top:10px;">
-        <div style="display:flex;justify-content:space-between;font-family:var(--font-head);font-size:9px;text-transform:uppercase;color:var(--c-muted);margin-bottom:4px;">
+      <div class="goal-section">
+        <div class="goal-row">
           <span>Daily Goal</span>
           <span><span id="goal-current">0</span> / <span id="goal-target">1000</span></span>
         </div>
@@ -924,7 +1012,7 @@ body.zen-mode .wc-bar{display:flex;}
   </aside>
 
   <!-- WORKSPACE -->
-  <main id="workspace">
+  <main id="workspace" role="main" aria-label="Document workspace">
     <div id="paper" class="style-abnt">
       <div id="cover-page">
         <h2 contenteditable="true" style="font-size:14pt;font-weight:bold;margin-bottom:20px;font-family:Arial,sans-serif;">NOME DA INSTITUIÇÃO</h2>
@@ -942,7 +1030,7 @@ body.zen-mode .wc-bar{display:flex;}
         <p>Select your academic standard from the left sidebar. Use the toolbar above to format your text. Insert references, footnotes, images, tables and more using the Insert panel.</p>
         <p>Press <strong>Ctrl+S</strong> to save, <strong>F11</strong> for Zen Mode, and <strong>Ctrl+H</strong> for Find &amp; Replace.</p>
       </div>
-      <div id="page-numbers" style="display:none;text-align:right;padding:0 2cm .5cm;font-family:Arial,sans-serif;font-size:10pt;color:#000;" id="page-num-el">1</div>
+      <div id="page-numbers" style="display:none;text-align:right;padding:0 2cm .5cm;font-family:Arial,sans-serif;font-size:10pt;color:#000;">1</div>
     </div>
   </main>
 
@@ -951,9 +1039,14 @@ body.zen-mode .wc-bar{display:flex;}
 <!-- ZOOM CONTROLS -->
 <div class="zoom-controls">
   <button class="zoom-btn" onclick="App.zoomIn()" title="Zoom In">+</button>
-  <div id="zoom-level" style="font-size:9px;padding:4px 2px;border:var(--border-w) solid var(--c-border);background:var(--c-panel);text-align:center;font-family:var(--font-head);">100%</div>
+  <div id="zoom-level">100%</div>
   <button class="zoom-btn" onclick="App.zoomOut()" title="Zoom Out">−</button>
   <button class="zoom-btn" onclick="App.zoomReset()" title="Reset Zoom" style="font-size:9px;">1:1</button>
+</div>
+
+<!-- WRITING MODE INDICATOR -->
+<div class="writing-indicator" id="writing-indicator">
+  <i class="fas fa-pen-nib"></i> Writing...
 </div>
 
 <!-- FOOTER -->
@@ -986,7 +1079,7 @@ body.zen-mode .wc-bar{display:flex;}
   <div class="ctx-item" onclick="App.insertFootnote()"><i class="fas fa-asterisk"></i> Insert Footnote</div>
   <div class="ctx-item" onclick="App.openModal('ref-modal')"><i class="fas fa-book"></i> Insert Reference</div>
   <div class="ctx-sep"></div>
-  <div class="ctx-item" onclick="document.execCommand('removeFormat')"><i class="fas fa-remove-format"></i> Clear Format</div>
+  <div class="ctx-item" onclick="document.execCommand('removeFormat')"><i class="fas fa-eraser"></i> Clear Format</div>
 </div>
 
 <div id="toast-container"></div>
@@ -1032,10 +1125,10 @@ body.zen-mode .wc-bar{display:flex;}
           <input type="text" class="form-input" id="exp-filename" value="document">
         </div>
         <div class="form-group">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:11px;">
+          <label class="export-label">
             <input type="checkbox" id="exp-cover" checked> Include Cover Page
           </label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:11px;margin-top:6px;">
+          <label class="export-label" style="margin-top:6px;">
             <input type="checkbox" id="exp-pgnums"> Include Page Numbers
           </label>
         </div>
@@ -1043,19 +1136,19 @@ body.zen-mode .wc-bar{display:flex;}
         <button class="btn btn-full" onclick="window.print()" style="margin-top:6px;"><i class="fas fa-print"></i> Print</button>
       </div>
       <div class="tab-content hidden" id="export-tab-html">
-        <p style="font-size:11px;color:var(--c-muted);margin-bottom:12px;">Standalone HTML with all styles embedded.</p>
+        <p class="export-desc">Standalone HTML with all styles embedded.</p>
         <button class="btn btn-primary btn-full" onclick="App.exportHTML()"><i class="fas fa-file-code"></i> Download HTML</button>
       </div>
       <div class="tab-content hidden" id="export-tab-txt">
-        <p style="font-size:11px;color:var(--c-muted);margin-bottom:12px;">Plain text, no formatting.</p>
+        <p class="export-desc">Plain text, no formatting.</p>
         <button class="btn btn-primary btn-full" onclick="App.exportTxt()"><i class="fas fa-file-alt"></i> Download TXT</button>
       </div>
       <div class="tab-content hidden" id="export-tab-md">
-        <p style="font-size:11px;color:var(--c-muted);margin-bottom:12px;">Markdown format for GitHub and other platforms.</p>
+        <p class="export-desc">Markdown format for GitHub and other platforms.</p>
         <button class="btn btn-primary btn-full" onclick="App.exportMarkdown()"><i class="fas fa-file-code"></i> Download MD</button>
       </div>
       <div class="tab-content hidden" id="export-tab-docx">
-        <p style="font-size:11px;color:var(--c-muted);margin-bottom:12px;">Word-compatible document with basic formatting.</p>
+        <p class="export-desc">Word-compatible document with basic formatting.</p>
         <button class="btn btn-primary btn-full" onclick="App.exportDOCX()"><i class="fas fa-file-word"></i> Download DOCX</button>
       </div>
     </div>
@@ -1137,9 +1230,9 @@ body.zen-mode .wc-bar{display:flex;}
 
       <div id="ref-preview"></div>
 
-      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <div class="ref-actions">
         <button class="btn btn-xs" onclick="App.copyRefToClipboard()"><i class="fas fa-copy"></i> Copy</button>
-        <span style="font-size:9px;font-family:var(--font-head);color:var(--c-muted);text-transform:uppercase;">Format:</span>
+        <span class="ref-format-label">Format:</span>
         <span class="badge badge-primary" id="ref-std-badge">ABNT</span>
       </div>
     </div>
@@ -1166,12 +1259,12 @@ body.zen-mode .wc-bar{display:flex;}
           <small>PNG, JPG, GIF, WebP — max 10MB</small>
           <input type="file" id="img-file" accept="image/*" style="display:none;" onchange="App.handleImgUpload(this)">
         </div>
-        <div id="img-preview-area" style="margin-top:10px;display:none;text-align:center;"><img id="img-preview" style="max-width:100%;max-height:150px;border:var(--border-w) solid var(--c-border);box-shadow:var(--shadow-sm);"></div>
+        <div id="img-preview-area" class="img-preview-area"><img id="img-preview" class="img-preview-img"></div>
       </div>
       <div class="tab-content hidden" id="image-tab-url">
         <div class="form-group"><label>Image URL</label><input type="text" class="form-input" id="img-url" placeholder="https://..."></div>
       </div>
-      <div class="form-row" style="margin-top:12px;">
+      <div class="form-row form-row-mt12">
         <div class="form-group"><label>Caption</label><input type="text" class="form-input" id="img-caption" placeholder="Figure 1: ..."></div>
         <div class="form-group"><label>Width</label><input type="text" class="form-input" id="img-width" placeholder="100%" value="100%"></div>
       </div>
@@ -1289,9 +1382,9 @@ body.zen-mode .wc-bar{display:flex;}
 <!-- CLEAR MODAL -->
 <div class="modal-overlay hidden" id="clear-modal">
   <div class="modal">
-    <div class="modal-header" style="background:var(--c-danger);"><span><i class="fas fa-exclamation-triangle"></i> Clear Document</span><button class="modal-close" onclick="App.closeModal('clear-modal')">&times;</button></div>
+    <div class="modal-header modal-header-danger"><span><i class="fas fa-exclamation-triangle"></i> Clear Document</span><button class="modal-close" onclick="App.closeModal('clear-modal')">&times;</button></div>
     <div class="modal-body">
-      <p style="font-size:13px;font-family:var(--font-head);">Clear all content? This cannot be undone.</p>
+      <p class="clear-warning">Clear all content? This cannot be undone.</p>
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="App.closeModal('clear-modal')">Cancel</button>
@@ -1341,6 +1434,7 @@ class ThesisApp {
       this.scheduleAutosave();
       this.updateOutline();
       this.updateToolbarState();
+      this.showWritingIndicator();
     });
     this.editor.addEventListener('keyup', () => this.updateToolbarState());
     this.editor.addEventListener('mouseup', () => { this.saveRange(); this.updateToolbarState(); });
@@ -1519,7 +1613,7 @@ class ThesisApp {
     const headings = this.editor.querySelectorAll('h1,h2,h3');
     const list = document.getElementById('outline-list');
     list.innerHTML = '';
-    if(!headings.length) { list.innerHTML='<li style="font-size:9px;color:var(--c-muted);padding:8px;font-family:var(--font-head);text-transform:uppercase;">No headings found</li>'; return; }
+    if(!headings.length) { list.innerHTML='<li class="outline-empty">No headings found</li>'; return; }
     headings.forEach(h => {
       const li = document.createElement('li');
       li.className = `outline-item ${h.tagName.toLowerCase()}`;
@@ -1546,7 +1640,7 @@ class ThesisApp {
       li.className = `doc-item${this.currentDocId===doc.id?' active':''}`;
       const words = doc.content ? (doc.content.replace(/<[^>]*>/g,' ').trim().split(/\s+/).filter(Boolean).length) : 0;
       li.innerHTML=`
-        <i class="fas fa-file-alt" style="font-size:11px;color:var(--c-muted);"></i>
+        <i class="fas fa-file-alt doc-icon"></i>
         <div class="doc-item-info">
           <div class="doc-item-name">${this.esc(doc.name)}</div>
           <div class="doc-item-meta">${doc.standard?.toUpperCase()} · ${words} words · ${this.fmtDate(doc.updatedAt)}</div>
@@ -2036,7 +2130,7 @@ class ThesisApp {
       content += `<div class="cover-page">${this.cover.innerHTML}</div>`;
     }
     content += `<div class="editor-area">${this.editor.innerHTML}</div>`;
-    const html=`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${this.esc(filename)}</title><style>${paperStyles}</style></head><body><div style="max-width:210mm;margin:0 auto;">${content}</div></body></html>`;
+    const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>${this.esc(filename)}</title><style>${paperStyles}</style></head><body><div style="max-width:210mm;margin:0 auto;">${content}</div></body></html>`;
     this._download(html,filename+'.html','text/html');
     this.closeModal('export-modal');
     this.toast('HTML exported','success');
@@ -2189,6 +2283,15 @@ img{max-width:100%;}
     document.getElementById('footer-status').className='footer-item editing';
     clearTimeout(this._autoSaveDebounce);
     this._autoSaveDebounce=setTimeout(()=>{ if(this.currentDocId) this.updateCurrentDoc(); },3000);
+  }
+
+  // ── WRITING INDICATOR ──
+  showWritingIndicator() {
+    const el = document.getElementById('writing-indicator');
+    if(!el) return;
+    el.classList.add('active');
+    clearTimeout(this._writeTimer);
+    this._writeTimer = setTimeout(() => el.classList.remove('active'), 1500);
   }
 
   // ── CLOCK ──
