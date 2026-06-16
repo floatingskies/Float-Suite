@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thesis — Float Suite</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%232D7DD2'/%3E%3Ctext x='16' y='23' font-family='Arial Black' font-size='20' text-anchor='middle' fill='%23fff'%3ET%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#2D7DD2">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/float.css">
+<script src="shared/i18n.js"></script>
+<script src="shared/float.js"></script>
+<script src="shared/exporters.js"></script>
+
+<style>
+:root{
+  --header-h:50px;
+  --menu-h:32px;
+  --sidebar-w:280px;
+  --footer-h:28px;
+}
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column}
+
+.app-header{height:var(--header-h);padding:0 12px;background:var(--c-bg);border-bottom:var(--bw) solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:10px}
+.app-logo{font-family:var(--font-head);font-size:16px;background:var(--c-blue);padding:6px 12px;border:var(--bw) solid var(--c-border);box-shadow:3px 3px 0 var(--c-border);transform:rotate(-1.5deg);color:#fff;white-space:nowrap}
+.version-badge{font-family:var(--font-ui);font-size:9px;background:var(--c-text);color:var(--c-bg);padding:2px 6px}
+
+/* Rich toolbar */
+.rich-toolbar{display:flex;gap:4px;align-items:center;flex-wrap:wrap;padding:0 6px;background:var(--c-panel);border-bottom:var(--bw-sm) solid var(--c-border);height:auto;min-height:36px;padding:4px 8px}
+.rich-toolbar select,.rich-toolbar button{padding:4px 6px;font-family:var(--font-ui);font-size:11px;background:var(--c-surface);border:2px solid var(--c-border);cursor:pointer;font-weight:700}
+.rich-toolbar select{min-width:90px}
+.rich-toolbar button:hover,.rich-toolbar select:hover{background:var(--c-blue);color:#fff}
+.rich-toolbar button.active{background:var(--c-blue);color:#fff}
+.rich-toolbar .sep{width:1px;height:22px;background:var(--c-border);margin:0 4px}
+.rich-toolbar input[type="color"]{width:24px;height:24px;padding:0;border:1px solid var(--c-border);cursor:pointer}
+.header-right{display:flex;gap:6px;align-items:center}
+
+/* App container */
+#app-container{flex:1;display:flex;overflow:hidden;min-height:0}
+
+/* Sidebar */
+#sidebar{width:var(--sidebar-w);background:var(--c-panel);border-right:var(--bw-sm) solid var(--c-border);overflow-y:auto;flex-shrink:0;padding:0}
+.sidebar-section{border-bottom:var(--bw-sm) solid var(--c-border);padding:10px}
+.sidebar-section h3{font-family:var(--font-head);font-size:11px;margin-bottom:8px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.sidebar-section h3 .count{font-family:var(--font-ui);font-size:9px;background:var(--c-text);color:var(--c-bg);padding:1px 5px}
+.doc-item{padding:8px;background:var(--c-surface);border:1px solid var(--c-border);margin-bottom:4px;cursor:pointer;font-family:var(--font-ui);font-size:11px}
+.doc-item:hover{background:var(--c-surface2)}
+.doc-item.active{background:var(--c-blue);color:#fff}
+.doc-item .doc-name{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-item .doc-meta{font-size:9px;opacity:.7;margin-top:2px}
+.standard-btns{display:flex;gap:4px}
+.standard-btn{flex:1;padding:6px;background:var(--c-surface);border:2px solid var(--c-border);cursor:pointer;font-family:var(--font-ui);font-size:10px;font-weight:700}
+.standard-btn:hover{background:var(--c-blue);color:#fff}
+.standard-btn.active{background:var(--c-blue);color:#fff}
+.insert-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.insert-btn{padding:6px;background:var(--c-surface);border:2px solid var(--c-border);cursor:pointer;font-family:var(--font-ui);font-size:10px;font-weight:700;display:flex;align-items:center;gap:4px;justify-content:center}
+.insert-btn:hover{background:var(--c-blue);color:#fff}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;font-family:var(--font-ui);font-size:11px}
+.toggle-row label{cursor:pointer}
+
+/* Outline */
+.outline-item{padding:4px 8px;cursor:pointer;font-family:var(--font-ui);font-size:11px;border-left:2px solid var(--c-border)}
+.outline-item:hover{background:var(--c-surface)}
+.outline-item.h1{font-weight:700}
+.outline-item.h2{margin-left:14px;font-weight:700}
+.outline-item.h3{margin-left:28px}
+
+/* Statistics */
+.stat-row{display:flex;justify-content:space-between;padding:4px 0;font-family:var(--font-ui);font-size:11px;border-bottom:1px dotted var(--c-border)}
+.stat-row:last-child{border-bottom:none}
+.stat-row .stat-key{color:var(--c-muted);text-transform:uppercase;font-size:9px;letter-spacing:.5px}
+.stat-row .stat-val{font-weight:700}
+.goal-bar{height:8px;background:var(--c-border);overflow:hidden;margin-top:6px}
+.goal-fill{height:100%;background:var(--c-success);width:0;transition:width .3s}
+
+/* Workspace */
+#workspace{flex:1;overflow:auto;background:var(--c-bg);padding:30px 0;position:relative;display:flex;flex-direction:column;align-items:center}
+#paper{
+  background:#fff;border:none;
+  width:210mm;min-height:297mm;
+  padding:3cm 2cm 2cm 3cm;
+  box-shadow:0 0 0 1px var(--c-border), 12px 12px 0 rgba(0,0,0,.06);
+  font-family:'Times New Roman', serif;
+  font-size:12pt;
+  line-height:1.5;
+  color:#000;
+  flex-shrink:0;
+  position:relative;
+}
+#paper[data-standard="apa"]{font-family:'Times New Roman',serif;font-size:12pt;line-height:2;padding:2.54cm}
+#paper[data-standard="mla"]{font-family:'Times New Roman',serif;font-size:12pt;line-height:2;padding:2.54cm;margin:0}
+#paper[data-standard="abnt"]{font-family:'Arial',sans-serif;font-size:12pt;line-height:1.5;padding:3cm 2cm 2cm 3cm}
+#paper[data-width="letter"]{width:8.5in;min-height:11in}
+#paper[data-width="full"]{width:auto;max-width:900px;min-height:auto;padding:2cm}
+
+#cover-page{display:none;border-bottom:1px solid #000;padding-bottom:2cm;margin-bottom:2cm;text-align:center;min-height:8cm;display:flex;flex-direction:column;justify-content:center;gap:8px}
+#cover-page.visible{display:flex}
+#cover-page .cover-top{flex:1;display:flex;align-items:flex-start;justify-content:center;font-family:var(--font-ui);font-size:10pt;text-transform:uppercase}
+#cover-page .cover-mid{flex:2;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:12px}
+#cover-page .cover-mid .title{font-family:'Times New Roman',serif;font-size:16pt;font-weight:700;text-transform:none}
+#cover-page .cover-mid .author{font-family:'Times New Roman',serif;font-size:12pt}
+#cover-page .cover-bottom{flex:1;display:flex;align-items:flex-end;justify-content:center;font-family:'Times New Roman',serif;font-size:12pt}
+
+#editor-area{outline:none;min-height:200px}
+#editor-area h1{font-size:16pt;margin-top:18pt;margin-bottom:12pt;text-transform:uppercase;text-align:center}
+#editor-area h2{font-size:14pt;margin-top:14pt;margin-bottom:10pt}
+#editor-area h3{font-size:12pt;margin-top:12pt;margin-bottom:8pt;font-weight:700}
+#editor-area h4{font-size:12pt;margin-top:10pt;margin-bottom:6pt;font-weight:700;font-style:italic}
+#editor-area p{text-indent:1.25cm;text-align:justify;margin-bottom:6pt}
+#editor-area p:first-of-type,#editor-area h1+p,#editor-area h2+p,#editor-area h3+p{text-indent:0}
+#editor-area ul,#editor-area ol{margin:6pt 0 6pt 1.25cm}
+#editor-area blockquote{border-left:3px solid #888;padding-left:1cm;margin:6pt 1cm;font-style:italic;color:#444}
+#editor-area pre{background:#f4f4f4;padding:8pt;border:1px solid #ccc;font-family:'Courier New',monospace;font-size:10pt;white-space:pre-wrap;margin:6pt 0}
+#editor-area code{font-family:'Courier New',monospace;background:#f4f4f4;padding:1pt 3pt}
+#editor-area img{max-width:100%;height:auto;display:block;margin:8pt auto}
+#editor-area table{border-collapse:collapse;width:100%;margin:8pt 0}
+#editor-area th,#editor-area td{border:1px solid #000;padding:4pt 6pt;text-align:left}
+#editor-area th{background:#eee;font-weight:700}
+#editor-area hr{border:none;border-top:1px solid #000;margin:12pt 0}
+#editor-area .page-break{page-break-after:always;border-top:1px dashed #999;margin:12pt 0;padding-top:4pt;text-align:center;font-family:var(--font-ui);font-size:9pt;color:#999;text-transform:uppercase}
+#editor-area .footnote{font-size:9pt;vertical-align:super;color:var(--c-blue)}
+#editor-area a{color:var(--c-blue);text-decoration:underline}
+#editor-area .toc-container{padding:8pt 0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:8pt 0;font-family:'Times New Roman',serif}
+#editor-area .toc-line{padding:3pt 0;display:flex;gap:8pt;align-items:baseline}
+#editor-area .toc-l1{font-weight:700;font-size:12pt;margin-top:6pt}
+#editor-area .toc-l2{padding-left:18pt;font-size:11pt}
+#editor-area .toc-l3{padding-left:36pt;font-size:11pt;font-style:italic}
+#editor-area .toc-l4{padding-left:54pt;font-size:10pt;color:#555}
+#editor-area .toc-num{min-width:30pt;display:inline-block;color:#444;font-family:var(--font-ui);font-size:9pt}
+#editor-area .toc-link{color:#000;text-decoration:none;flex:1;border-bottom:1px dotted transparent}
+#editor-area .toc-link:hover{border-bottom-color:#999}
+#editor-area .toc-empty{font-family:var(--font-ui);font-size:10pt;color:#888;font-style:italic;padding:6pt 0}
+
+#page-numbers{display:none;text-align:center;font-family:'Times New Roman',serif;font-size:10pt;color:#666;padding-top:8pt;border-top:1px solid #eee;margin-top:12pt}
+#page-numbers.visible{display:block}
+
+/* Zen mode */
+body.zen-mode #sidebar,body.zen-mode .rich-toolbar,body.zen-mode #hud-menubar,body.zen-mode footer,body.zen-mode #find-bar{display:none !important}
+body.zen-mode #workspace{padding:20px 0}
+body.zen-mode #paper{box-shadow:0 0 0 1px var(--c-border)}
+#zen-exit{position:fixed;top:14px;right:14px;z-index:200;display:none}
+body.zen-mode #zen-exit{display:inline-flex}
+#zen-wc{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);background:var(--c-text);color:var(--c-bg);padding:6px 14px;font-family:var(--font-ui);font-size:11px;display:none}
+body.zen-mode #zen-wc{display:block}
+
+/* Find bar */
+#find-bar{display:none;background:var(--c-panel);border-bottom:var(--bw-sm) solid var(--c-border);padding:6px 12px;align-items:center;gap:8px;flex-wrap:wrap}
+#find-bar.open{display:flex}
+#find-bar input{padding:4px 6px;font-family:var(--font-ui);font-size:11px;max-width:200px}
+#find-bar .find-info{font-family:var(--font-ui);font-size:10px;color:var(--c-muted);margin-left:auto}
+
+/* Zoom controls */
+.zoom-controls{position:fixed;bottom:38px;right:14px;z-index:200;display:flex;gap:4px;background:var(--c-surface);border:var(--bw-sm) solid var(--c-border);padding:4px;box-shadow:var(--shadow-sm)}
+.zoom-controls button{padding:4px 8px;font-family:var(--font-ui);font-size:11px;background:var(--c-surface);border:1px solid var(--c-border);cursor:pointer}
+.zoom-controls button:hover{background:var(--c-blue);color:#fff}
+
+/* Footer */
+footer{height:var(--footer-h);background:var(--c-text);color:var(--c-bg);display:flex;align-items:center;padding:0 14px;font-family:var(--font-ui);font-size:10px;gap:18px;flex-shrink:0}
+footer .f-section{display:inline-flex;align-items:center;gap:6px}
+footer .f-section .k{color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* Writing indicator */
+#writing-indicator{position:fixed;top:var(--header-h);right:14px;z-index:100;background:var(--c-blue);color:#fff;padding:4px 10px;font-family:var(--font-ui);font-size:10px;display:none;align-items:center;gap:6px}
+#writing-indicator.visible{display:flex}
+#writing-indicator .pen{animation:write .8s ease-in-out infinite}
+@keyframes write{0%,100%{transform:rotate(0)}50%{transform:rotate(20deg)}}
+
+/* Reference modal */
+.ref-tabs{display:flex;gap:4px;margin-bottom:12px}
+.ref-tab{flex:1;padding:8px;background:var(--c-surface);border:2px solid var(--c-border);cursor:pointer;font-family:var(--font-ui);font-size:10px;text-transform:uppercase;font-weight:700}
+.ref-tab.active{background:var(--c-blue);color:#fff}
+.ref-preview{background:var(--c-bg);border:2px solid var(--c-border);padding:12px;font-family:serif;font-size:11pt;min-height:60px;margin-bottom:10px}
+
+/* Settings */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--c-border)}
+.setting-row label{font-family:var(--font-ui);font-size:11px}
+.setting-row input,.setting-row select{padding:4px 6px;font-family:var(--font-ui);font-size:11px;border:1px solid var(--c-border)}
+
+@media(max-width:900px){
+  :root{--sidebar-w:220px}
+  #paper{margin:0 14px}
+}
+@media(max-width:680px){
+  #sidebar{display:none}
+  .rich-toolbar{overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-left">
+    <a href="index.html" class="app-logo">THESIS</a>
+    <span class="version-badge">v3.1</span>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-sm" id="btn-find" title="Find & Replace (Ctrl+H)"><i class="fa-solid fa-magnifying-glass"></i></button>
+    <button class="btn btn-sm" id="btn-zen" title="Zen Mode (F11)"><i class="fa-solid fa-expand"></i></button>
+    <button class="btn btn-sm" id="btn-export" title="Export (Ctrl+P)"><i class="fa-solid fa-file-export"></i></button>
+    <a href="index.html" class="btn btn-sm" title="Back to Float Suite"><i class="fa-solid fa-arrow-left"></i></a>
+  </div>
+</header>
+<div id="hud-mount"></div>
+
+<!-- Rich toolbar -->
+<div class="rich-toolbar">
+  <select id="rt-block" title="Block type">
+    <option value="p">¶ Paragraph</option>
+    <option value="h1">H1</option>
+    <option value="h2">H2</option>
+    <option value="h3">H3</option>
+    <option value="h4">H4</option>
+    <option value="pre">Pre</option>
+    <option value="blockquote">Quote</option>
+  </select>
+  <select id="rt-font" title="Font">
+    <option>Times New Roman</option>
+    <option>Arial</option>
+    <option>Helvetica</option>
+    <option>Georgia</option>
+    <option>Verdana</option>
+    <option>Courier New</option>
+  </select>
+  <select id="rt-size" title="Size">
+    <option value="2">10pt</option>
+    <option value="3" selected>12pt</option>
+    <option value="4">14pt</option>
+    <option value="5">18pt</option>
+    <option value="6">24pt</option>
+    <option value="7">36pt</option>
+  </select>
+  <div class="sep"></div>
+  <button data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+  <button data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+  <button data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+  <button data-cmd="strikeThrough" title="Strikethrough"><s>S</s></button>
+  <button data-cmd="superscript" title="Superscript">x²</button>
+  <button data-cmd="subscript" title="Subscript">x₂</button>
+  <div class="sep"></div>
+  <input type="color" id="rt-fore" value="#000000" title="Text color">
+  <input type="color" id="rt-hl" value="#FFFF00" title="Highlight">
+  <div class="sep"></div>
+  <button data-cmd="justifyLeft" title="Align left"><i class="fa-solid fa-align-left"></i></button>
+  <button data-cmd="justifyCenter" title="Center"><i class="fa-solid fa-align-center"></i></button>
+  <button data-cmd="justifyRight" title="Right"><i class="fa-solid fa-align-right"></i></button>
+  <button data-cmd="justifyFull" title="Justify"><i class="fa-solid fa-align-justify"></i></button>
+  <div class="sep"></div>
+  <button data-cmd="insertUnorderedList" title="Bullets"><i class="fa-solid fa-list-ul"></i></button>
+  <button data-cmd="insertOrderedList" title="Numbered"><i class="fa-solid fa-list-ol"></i></button>
+  <button data-cmd="indent" title="Indent"><i class="fa-solid fa-indent"></i></button>
+  <button data-cmd="outdent" title="Outdent"><i class="fa-solid fa-outdent"></i></button>
+  <div class="sep"></div>
+  <button data-cmd="undo" title="Undo (Ctrl+Z)"><i class="fa-solid fa-rotate-left"></i></button>
+  <button data-cmd="redo" title="Redo (Ctrl+Y)"><i class="fa-solid fa-rotate-right"></i></button>
+  <button data-cmd="removeFormat" title="Clear format"><i class="fa-solid fa-eraser"></i></button>
+</div>
+
+<!-- Find bar -->
+<div id="find-bar">
+  <input type="search" id="find-input" placeholder="Find…">
+  <button class="btn btn-xs" id="find-prev">↑</button>
+  <button class="btn btn-xs" id="find-next">↓</button>
+  <input type="text" id="replace-input" placeholder="Replace…">
+  <button class="btn btn-xs" id="replace-one">Replace</button>
+  <button class="btn btn-xs" id="replace-all">All</button>
+  <label style="font-size:10px"><input type="checkbox" id="find-case"> Aa</label>
+  <label style="font-size:10px"><input type="checkbox" id="find-regex"> Regex</label>
+  <span class="find-info" id="find-info"></span>
+</div>
+
+<button class="btn btn-sm" id="zen-exit"><i class="fa-solid fa-times"></i> Exit Zen</button>
+
+<div id="app-container">
+
+  <aside id="sidebar" aria-label="Sidebar">
+    <div class="sidebar-section">
+      <h3><span data-i18n="thesis.tab_documents">Documents</span> <span class="count" id="doc-count">0</span></h3>
+      <div class="btn-row" style="display:flex;gap:4px;margin-bottom:8px">
+        <button class="btn btn-xs" style="flex:1" id="btn-new-doc"><i class="fa-solid fa-plus"></i> <span data-i18n="common.new">New</span></button>
+        <button class="btn btn-xs" style="flex:1" id="btn-save-doc"><i class="fa-solid fa-floppy-disk"></i> <span data-i18n="common.save">Save</span></button>
+      </div>
+      <div id="doc-list"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3 data-i18n="thesis.tab_standard">Standard</h3>
+      <div class="standard-btns">
+        <button class="standard-btn active" data-std="abnt">ABNT</button>
+        <button class="standard-btn" data-std="apa">APA</button>
+        <button class="standard-btn" data-std="mla">MLA</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3 data-i18n="thesis.tab_insert">Insert</h3>
+      <div class="insert-grid">
+        <button class="insert-btn" data-ins="image"><i class="fa-solid fa-image"></i> <span data-i18n="thesis.insert_image">Image</span></button>
+        <button class="insert-btn" data-ins="table"><i class="fa-solid fa-table"></i> <span data-i18n="thesis.insert_table">Table</span></button>
+        <button class="insert-btn" data-ins="link"><i class="fa-solid fa-link"></i> <span data-i18n="thesis.insert_link">Link</span></button>
+        <button class="insert-btn" data-ins="hr"><i class="fa-solid fa-minus"></i> <span data-i18n="thesis.insert_hr">HR</span></button>
+        <button class="insert-btn" data-ins="quote"><i class="fa-solid fa-quote-left"></i> <span data-i18n="thesis.insert_quote">Quote</span></button>
+        <button class="insert-btn" data-ins="code"><i class="fa-solid fa-code"></i> <span data-i18n="thesis.insert_code">Code</span></button>
+        <button class="insert-btn" data-ins="footnote"><i class="fa-solid fa-superscript"></i> <span data-i18n="thesis.insert_footnote">Footnote</span></button>
+        <button class="insert-btn" data-ins="pagebreak"><i class="fa-solid fa-scissors"></i> <span data-i18n="thesis.insert_pagebreak">Page Break</span></button>
+        <button class="insert-btn" data-ins="abstract"><i class="fa-solid fa-file-lines"></i> <span data-i18n="thesis.insert_abstract">Abstract</span></button>
+        <button class="insert-btn" data-ins="toc"><i class="fa-solid fa-list-ol"></i> <span data-i18n="thesis.insert_toc">TOC</span></button>
+        <button class="insert-btn" data-ins="intro"><i class="fa-solid fa-play"></i> Intro</button>
+        <button class="insert-btn" data-ins="conclusion"><i class="fa-solid fa-flag-checkered"></i> Conclusion</button>
+        <button class="insert-btn" data-ins="refs"><i class="fa-solid fa-book"></i> <span data-i18n="thesis.insert_refs">References</span></button>
+        <button class="insert-btn" data-ins="reference"><i class="fa-solid fa-plus"></i> Reference</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3 data-i18n="thesis.tab_page">Page</h3>
+      <div class="toggle-row"><label for="toggle-cover"><span data-i18n="thesis.page_cover">Cover Page</span></label> <input type="checkbox" id="toggle-cover"></div>
+      <div class="toggle-row"><label for="toggle-pagenums"><span data-i18n="thesis.page_numbers">Page Numbers</span></label> <input type="checkbox" id="toggle-pagenums"></div>
+      <button class="btn btn-xs" id="btn-settings" style="width:100%;margin-top:8px"><i class="fa-solid fa-gear"></i> <span data-i18n="thesis.settings">Settings</span></button>
+      <button class="btn btn-xs btn-danger" id="btn-clear" style="width:100%;margin-top:6px"><i class="fa-solid fa-trash"></i> <span data-i18n="thesis.clear_doc">Clear</span></button>
+    </div>
+
+    <div class="sidebar-section">
+      <h3 data-i18n="thesis.tab_outline">Outline</h3>
+      <div id="outline-list"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3 data-i18n="thesis.tab_stats">Statistics</h3>
+      <div class="stat-row"><span class="stat-key" data-i18n="common.words">Words</span><span class="stat-val" id="stat-words">0</span></div>
+      <div class="stat-row"><span class="stat-key" data-i18n="common.characters">Characters</span><span class="stat-val" id="stat-chars">0</span></div>
+      <div class="stat-row"><span class="stat-key" data-i18n="common.paragraphs">Paragraphs</span><span class="stat-val" id="stat-paras">0</span></div>
+      <div class="stat-row"><span class="stat-key" data-i18n="common.sentences">Sentences</span><span class="stat-val" id="stat-sent">0</span></div>
+      <div class="stat-row"><span class="stat-key" data-i18n="common.pages">Pages</span><span class="stat-val" id="stat-pages">0</span></div>
+      <div class="stat-row"><span class="stat-key" data-i18n="common.read_time">Read time</span><span class="stat-val" id="stat-read">0 min</span></div>
+      <div style="margin-top:10px">
+        <div style="font-family:var(--font-ui);font-size:9px;text-transform:uppercase;color:var(--c-muted);margin-bottom:4px" data-i18n="common.daily_goal">Daily goal</div>
+        <div class="goal-bar"><div class="goal-fill" id="goal-fill"></div></div>
+        <div style="font-family:var(--font-ui);font-size:10px;margin-top:4px" id="goal-text">0 / 1000</div>
+      </div>
+    </div>
+  </aside>
+
+  <main id="workspace">
+    <div id="paper" data-standard="abnt">
+      <div id="cover-page">
+        <div class="cover-top" contenteditable="true" data-i18n="thesis.cover_institution">INSTITUTION NAME</div>
+        <div class="cover-mid">
+          <div class="author" contenteditable="true" data-i18n="thesis.cover_author">Author Name</div>
+          <div class="title" contenteditable="true" data-i18n="thesis.cover_title">Title of Academic Work</div>
+          <div class="cover-top" contenteditable="true" data-i18n="thesis.cover_course">Course / Program</div>
+        </div>
+        <div class="cover-bottom" contenteditable="true"><span data-i18n="thesis.cover_city">City</span> / <span data-i18n="thesis.cover_year">Year</span></div>
+      </div>
+      <div id="editor-area" contenteditable="true" spellcheck="true">
+        <h1>Welcome</h1>
+        <p>This is the academic writing workspace. Start typing your thesis, paper, or creative manuscript here.</p>
+        <p>Use the menus above or press <kbd>Alt</kbd> to open the command palette. Press <kbd>?</kbd> to see all shortcuts.</p>
+      </div>
+      <div id="page-numbers">1</div>
+    </div>
+  </main>
+
+</div>
+
+<div class="zoom-controls">
+  <button id="zoom-out" title="Zoom out">−</button>
+  <button id="zoom-reset" title="100%">100%</button>
+  <button id="zoom-in" title="Zoom in">+</button>
+</div>
+
+<div id="writing-indicator"><i class="fa-solid fa-pen pen"></i> Writing…</div>
+<div id="zen-wc">0 words</div>
+
+<footer>
+  <span class="f-section"><span class="k">Doc</span> <span id="f-doc">—</span></span>
+  <span class="f-section"><span class="k">Standard</span> <span id="f-std">ABNT</span></span>
+  <span class="f-section"><span class="k">Words</span> <span id="f-words">0</span></span>
+  <span class="f-section" style="margin-left:auto"><span class="k">F11</span> Zen · <span class="k">Alt</span> Commands · <span class="k">?</span> Shortcuts</span>
+</footer>
+
+<!-- Save modal -->
+<div class="modal-overlay" id="modal-save">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_save_title">Save Document</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="common.name">Name</label><input type="text" id="save-name" placeholder="Untitled"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-save')" data-i18n="common.cancel">Cancel</button>
+      <button class="btn btn-primary" id="save-confirm" data-i18n="common.save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_export_title">Export</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="field">
+        <label data-i18n="common.format">Format</label>
+        <div class="export-format-grid" id="export-formats" style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
+          <div class="chip active" data-fmt="pdf">PDF</div>
+          <div class="chip" data-fmt="docx">DOCX</div>
+          <div class="chip" data-fmt="odt">ODT</div>
+          <div class="chip" data-fmt="html">HTML</div>
+          <div class="chip" data-fmt="txt">TXT</div>
+        </div>
+      </div>
+      <div class="field"><label data-i18n="common.filename">Filename</label><input type="text" id="exp-name" value="document"></div>
+      <div class="field-row"><input type="checkbox" id="exp-include-cover" checked> <label for="exp-include-cover">Include cover page</label></div>
+      <div class="field-row"><input type="checkbox" id="exp-include-pagenums" checked> <label for="exp-include-pagenums">Include page numbers</label></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-export')" data-i18n="common.cancel">Cancel</button>
+      <button class="btn btn-primary" id="exp-go" data-i18n="common.export">Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reference modal -->
+<div class="modal-overlay" id="modal-ref">
+  <div class="modal" style="width:min(720px,95vw)">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_ref_title">Reference Generator</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="ref-tabs" id="ref-tabs">
+        <button class="ref-tab active" data-tab="book" data-i18n="thesis.ref_book">Book</button>
+        <button class="ref-tab" data-tab="article" data-i18n="thesis.ref_article">Article</button>
+        <button class="ref-tab" data-tab="web" data-i18n="thesis.ref_web">Website</button>
+        <button class="ref-tab" data-tab="thesis" data-i18n="thesis.ref_thesis">Thesis</button>
+      </div>
+      <div id="ref-fields"></div>
+      <div class="field"><label data-i18n="thesis.ref_preview">Preview</label><div class="ref-preview" id="ref-preview"></div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="ref-copy" data-i18n="thesis.ref_copy">Copy</button>
+      <button class="btn btn-primary" id="ref-insert" data-i18n="thesis.ref_insert">Insert</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image modal -->
+<div class="modal-overlay" id="modal-image">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_image_title">Insert Image</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="thesis.image_upload">Upload from file</label><input type="file" id="img-file" accept="image/*"></div>
+      <div class="field"><label data-i18n="thesis.image_url">From URL</label><input type="url" id="img-url" placeholder="https://…"></div>
+      <div class="field"><label data-i18n="thesis.image_alt">Alt text</label><input type="text" id="img-alt"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-image')" data-i18n="common.cancel">Cancel</button>
+      <button class="btn btn-primary" id="img-insert" data-i18n="common.apply">Insert</button>
+    </div>
+  </div>
+</div>
+
+<!-- Table modal -->
+<div class="modal-overlay" id="modal-table">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_table_title">Insert Table</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="grid-2">
+        <div class="field"><label data-i18n="thesis.rows">Rows</label><input type="number" id="tbl-rows" value="3" min="1" max="50"></div>
+        <div class="field"><label data-i18n="thesis.cols">Columns</label><input type="number" id="tbl-cols" value="3" min="1" max="20"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-table')" data-i18n="common.cancel">Cancel</button>
+      <button class="btn btn-primary" id="tbl-insert" data-i18n="common.apply">Insert</button>
+    </div>
+  </div>
+</div>
+
+<!-- Link modal -->
+<div class="modal-overlay" id="modal-link">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_link_title">Insert Link</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="thesis.link_text">Text</label><input type="text" id="link-text"></div>
+      <div class="field"><label data-i18n="thesis.link_url">URL</label><input type="url" id="link-url" placeholder="https://…"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-link')" data-i18n="common.cancel">Cancel</button>
+      <button class="btn btn-primary" id="link-insert" data-i18n="common.apply">Insert</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_settings_title">Settings</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="setting-row"><label data-i18n="thesis.goal">Daily word goal</label><input type="number" id="set-goal" value="1000" min="100" max="50000" step="100"></div>
+      <div class="setting-row"><label data-i18n="thesis.autosave">Autosave (seconds)</label><input type="number" id="set-autosave" value="30" min="5" max="600"></div>
+      <div class="setting-row"><label data-i18n="thesis.spellcheck">Spell check</label><input type="checkbox" id="set-spell" checked></div>
+      <div class="setting-row"><label data-i18n="thesis.paper_width">Paper width</label>
+        <select id="set-width">
+          <option value="210mm">A4 (210mm)</option>
+          <option value="letter">US Letter</option>
+          <option value="full">Full width</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-settings')" data-i18n="common.close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear modal -->
+<div class="modal-overlay" id="modal-clear">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="thesis.modal_clear_title">Clear Document</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <p data-i18n="common.confirm_clear">Clear everything? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-clear')" data-i18n="common.cancel">Cancel</button>
+      <button class="btn btn-danger" id="clear-confirm" data-i18n="common.clear">Clear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const {$,$$,el,clamp,uid,toast,openModal,closeModal} = Float;
+  const I = FloatI18n;
+
+  class ThesisApp {
+    constructor(){
+      this.paper = null;
+      this.editor = null;
+      this.cover = null;
+      this.currentStandard = 'abnt';
+      this.currentDocId = null;
+      this.documents = [];
+      this.zoomLevel = 1;
+      this.settings = {goal:1000, autosave:30, spellcheck:true, fontsize:'', width:'210mm'};
+      this.footnoteCount = 0;
+      this.showPageNums = false;
+      this._findMatches = [];
+      this._findIdx = -1;
+      this._savedRange = null;
+      this._writeStart = null;
+      this._writeTimer = null;
+      this.currentRefTab = 'book';
+    }
+
+    init(){
+      this.paper = $('#paper');
+      this.editor = $('#editor-area');
+      this.cover = $('#cover-page');
+      this.loadSettings();
+      this.loadDocuments();
+      this.bindUI();
+      this.bindEditor();
+      this.bindHUD();
+      this.initAutosave();
+      Float.initModals();
+      Float.applyTheme(Float.getThemeMode());
+      Float.updateThemeIcons();
+      I.apply();
+      I.on(() => { this.bindHUD(); this.renderDocList(); this.updateStats(); this.updateCoverPlaceholders(); });
+      this.updateStats();
+      this.startClock();
+      this.updateOutline();
+      toast(I.t('common.ready'), 'success', 1400);
+    }
+
+    /* ---- HUD ---- */
+    bindHUD(){
+      const spec = {
+        menus: [
+          {i18n:'common.file', items:[
+            {i18n:'common.new', shortcut:{mod:['Ctrl'],key:'N'}, cmd:'file.new'},
+            {i18n:'common.save', shortcut:{mod:['Ctrl'],key:'S'}, cmd:'file.save'},
+            {i18n:'common.save_as', cmd:'file.saveAs'},
+            {sep:true},
+            {i18n:'common.export', shortcut:{mod:['Ctrl'],key:'P'}, cmd:'file.export'},
+          ]},
+          {i18n:'common.edit', items:[
+            {i18n:'common.undo', shortcut:{mod:['Ctrl'],key:'Z'}, cmd:'edit.undo'},
+            {i18n:'common.redo', shortcut:{mod:['Ctrl'],key:'Y'}, cmd:'edit.redo'},
+            {sep:true},
+            {i18n:'thesis.find_replace', shortcut:{mod:['Ctrl'],key:'F'}, cmd:'edit.find'},
+            {sep:true},
+            {i18n:'thesis.clear_doc', cmd:'edit.clear'},
+          ]},
+          {i18n:'common.format', items:[
+            {i18n:'thesis.format_h1', cmd:'format.h1'},
+            {i18n:'thesis.format_h2', cmd:'format.h2'},
+            {i18n:'thesis.format_h3', cmd:'format.h3'},
+            {i18n:'thesis.format_p', cmd:'format.p'},
+            {sep:true},
+            {i18n:'common.bold', shortcut:{mod:['Ctrl'],key:'B'}, cmd:'format.bold'},
+            {i18n:'common.italic', shortcut:{mod:['Ctrl'],key:'I'}, cmd:'format.italic'},
+            {i18n:'common.underline', shortcut:{mod:['Ctrl'],key:'U'}, cmd:'format.underline'},
+            {sep:true},
+            {i18n:'thesis.list_bullet', cmd:'format.bullet'},
+            {i18n:'thesis.list_number', cmd:'format.number'},
+            {i18n:'thesis.clear_format', cmd:'format.clear'},
+          ]},
+          {i18n:'common.insert', items:[
+            {i18n:'thesis.insert_image', cmd:'insert.image'},
+            {i18n:'thesis.insert_table', cmd:'insert.table'},
+            {i18n:'thesis.insert_link', shortcut:{mod:['Ctrl'],key:'L'}, cmd:'insert.link'},
+            {sep:true},
+            {i18n:'thesis.insert_hr', cmd:'insert.hr'},
+            {i18n:'thesis.insert_quote', cmd:'insert.quote'},
+            {i18n:'thesis.insert_code', cmd:'insert.code'},
+            {i18n:'thesis.insert_footnote', cmd:'insert.footnote'},
+            {i18n:'thesis.insert_pagebreak', shortcut:{mod:['Ctrl'],key:'Enter'}, cmd:'insert.pagebreak'},
+            {sep:true},
+            {i18n:'thesis.insert_abstract', cmd:'insert.abstract'},
+            {i18n:'thesis.insert_toc', cmd:'insert.toc'},
+            {i18n:'thesis.insert_refs', cmd:'insert.refs'},
+          ]},
+          {i18n:'thesis.menu_references', items:[
+            {i18n:'thesis.modal_ref_title', shortcut:{mod:['Ctrl'],key:'K'}, cmd:'refs.open'},
+            {i18n:'thesis.ref_book', cmd:'refs.book'},
+            {i18n:'thesis.ref_article', cmd:'refs.article'},
+            {i18n:'thesis.ref_web', cmd:'refs.web'},
+            {i18n:'thesis.ref_thesis', cmd:'refs.thesis'},
+            {sep:true},
+            {i18n:'thesis.insert_toc', cmd:'insert.toc'},
+            {label:'Update TOC', cmd:'refs.updateTOC'},
+            {i18n:'thesis.insert_refs', cmd:'insert.refs'},
+          ]},
+          {i18n:'common.view', items:[
+            {i18n:'thesis.zen_mode', shortcut:{key:'F11'}, cmd:'view.zen'},
+            {i18n:'common.zoom_in', shortcut:{mod:['Ctrl'],key:'+'}, cmd:'view.zoomIn'},
+            {i18n:'common.zoom_out', shortcut:{mod:['Ctrl'],key:'-'}, cmd:'view.zoomOut'},
+            {i18n:'common.zoom_reset', shortcut:{mod:['Ctrl'],key:'0'}, cmd:'view.zoomReset'},
+            {sep:true},
+            {i18n:'thesis.page_cover', cmd:'view.cover'},
+            {i18n:'thesis.page_numbers', cmd:'view.pageNums'},
+          ]},
+          {i18n:'common.help', items:[
+            {i18n:'common.shortcuts', shortcut:{key:'?'}, cmd:'help.shortcuts'},
+          ]},
+        ]
+      };
+      const cmds = [
+        {id:'file.new', i18n:'common.new', group:'file', run:() => this.newDocument()},
+        {id:'file.save', i18n:'common.save', group:'file', run:() => this.saveDocument()},
+        {id:'file.saveAs', i18n:'common.save_as', group:'file', run:() => this.openSaveModal()},
+        {id:'file.export', i18n:'common.export', group:'file', run:() => this.openExport()},
+        {id:'edit.undo', i18n:'common.undo', group:'edit', run:() => document.execCommand('undo')},
+        {id:'edit.redo', i18n:'common.redo', group:'edit', run:() => document.execCommand('redo')},
+        {id:'edit.find', i18n:'thesis.find_replace', group:'edit', run:() => this.toggleFindBar()},
+        {id:'edit.clear', i18n:'thesis.clear_doc', group:'edit', run:() => this.clearDocument()},
+        {id:'format.h1', i18n:'thesis.format_h1', group:'format', run:() => this.formatBlock('h1')},
+        {id:'format.h2', i18n:'thesis.format_h2', group:'format', run:() => this.formatBlock('h2')},
+        {id:'format.h3', i18n:'thesis.format_h3', group:'format', run:() => this.formatBlock('h3')},
+        {id:'format.p', i18n:'thesis.format_p', group:'format', run:() => this.formatBlock('p')},
+        {id:'format.bold', i18n:'common.bold', group:'format', run:() => this.exec('bold')},
+        {id:'format.italic', i18n:'common.italic', group:'format', run:() => this.exec('italic')},
+        {id:'format.underline', i18n:'common.underline', group:'format', run:() => this.exec('underline')},
+        {id:'format.bullet', i18n:'thesis.list_bullet', group:'format', run:() => this.exec('insertUnorderedList')},
+        {id:'format.number', i18n:'thesis.list_number', group:'format', run:() => this.exec('insertOrderedList')},
+        {id:'format.clear', i18n:'thesis.clear_format', group:'format', run:() => this.exec('removeFormat')},
+        {id:'insert.image', i18n:'thesis.insert_image', group:'insert', run:() => openModal('modal-image')},
+        {id:'insert.table', i18n:'thesis.insert_table', group:'insert', run:() => openModal('modal-table')},
+        {id:'insert.link', i18n:'thesis.insert_link', group:'insert', run:() => this.openLinkModal()},
+        {id:'insert.hr', i18n:'thesis.insert_hr', group:'insert', run:() => this.insertHR()},
+        {id:'insert.quote', i18n:'thesis.insert_quote', group:'insert', run:() => this.insertBlockquote()},
+        {id:'insert.code', i18n:'thesis.insert_code', group:'insert', run:() => this.insertCode()},
+        {id:'insert.footnote', i18n:'thesis.insert_footnote', group:'insert', run:() => this.insertFootnote()},
+        {id:'insert.pagebreak', i18n:'thesis.insert_pagebreak', group:'insert', run:() => this.insertPageBreak()},
+        {id:'insert.abstract', i18n:'thesis.insert_abstract', group:'insert', run:() => this.insertStructure('abstract')},
+        {id:'insert.toc', i18n:'thesis.insert_toc', group:'insert', run:() => this.insertStructure('toc')},
+        {id:'insert.refs', i18n:'thesis.insert_refs', group:'insert', run:() => this.insertStructure('references')},
+        {id:'refs.open', i18n:'thesis.modal_ref_title', group:'references', run:() => this.openReferenceModal()},
+        {id:'refs.book', i18n:'thesis.ref_book', group:'references', run:() => this.openReferenceModal('book')},
+        {id:'refs.article', i18n:'thesis.ref_article', group:'references', run:() => this.openReferenceModal('article')},
+        {id:'refs.web', i18n:'thesis.ref_web', group:'references', run:() => this.openReferenceModal('web')},
+        {id:'refs.thesis', i18n:'thesis.ref_thesis', group:'references', run:() => this.openReferenceModal('thesis')},
+        {id:'refs.updateTOC', label:'Update Table of Contents', group:'references', run:() => { this.updateTOC(); toast(I.t('thesis.toast_toc'), 'success', 1200); }},
+        {id:'view.zen', i18n:'thesis.zen_mode', group:'view', run:() => this.toggleZen()},
+        {id:'view.zoomIn', i18n:'common.zoom_in', group:'view', run:() => this.applyZoom(this.zoomLevel * 1.1)},
+        {id:'view.zoomOut', i18n:'common.zoom_out', group:'view', run:() => this.applyZoom(this.zoomLevel / 1.1)},
+        {id:'view.zoomReset', i18n:'common.zoom_reset', group:'view', run:() => this.applyZoom(1)},
+        {id:'view.cover', i18n:'thesis.page_cover', group:'view', run:() => this.toggleCover()},
+        {id:'view.pageNums', i18n:'thesis.page_numbers', group:'view', run:() => this.togglePageNumbers()},
+        {id:'help.shortcuts', i18n:'common.shortcuts', group:'help', run:() => Float.showShortcuts()},
+      ];
+      if(!this._cmdsRegistered){
+        cmds.forEach(c => Float.registerCommand(c));
+        this._cmdsRegistered = true;
+      }
+      Float.rememberSpec(spec);
+      Float.mountHUD(spec);
+
+      Float.clearShortcuts();
+      Float.addShortcut({key:'S', mod:['Ctrl'], fn:() => this.saveDocument(), label:I.t('common.save'), group:'file'});
+      Float.addShortcut({key:'B', mod:['Ctrl'], fn:() => this.exec('bold'), label:I.t('common.bold'), group:'format'});
+      Float.addShortcut({key:'I', mod:['Ctrl'], fn:() => this.exec('italic'), label:I.t('common.italic'), group:'format'});
+      Float.addShortcut({key:'U', mod:['Ctrl'], fn:() => this.exec('underline'), label:I.t('common.underline'), group:'format'});
+      Float.addShortcut({key:'Z', mod:['Ctrl'], fn:() => document.execCommand('undo'), label:I.t('common.undo'), group:'edit'});
+      Float.addShortcut({key:'Y', mod:['Ctrl'], fn:() => document.execCommand('redo'), label:I.t('common.redo'), group:'edit'});
+      Float.addShortcut({key:'F', mod:['Ctrl'], fn:() => this.toggleFindBar(), label:I.t('thesis.find_replace'), group:'edit'});
+      Float.addShortcut({key:'H', mod:['Ctrl'], fn:() => this.toggleFindBar(), label:I.t('thesis.find_replace'), group:'edit'});
+      Float.addShortcut({key:'P', mod:['Ctrl'], fn:() => this.openExport(), label:I.t('common.export'), group:'file'});
+      Float.addShortcut({key:'L', mod:['Ctrl'], fn:() => this.openLinkModal(), label:I.t('thesis.insert_link'), group:'insert'});
+      Float.addShortcut({key:'K', mod:['Ctrl'], fn:() => this.openReferenceModal(), label:I.t('thesis.modal_ref_title'), group:'references'});
+      Float.addShortcut({key:'Enter', mod:['Ctrl'], fn:() => this.insertPageBreak(), label:I.t('thesis.insert_pagebreak'), group:'insert', allowInField:true});
+      Float.addShortcut({key:'F11', fn:() => this.toggleZen(), label:I.t('thesis.zen_mode'), group:'view'});
+    }
+
+    /* ---- Editor commands ---- */
+    exec(cmd, val){
+      this.saveRange();
+      document.execCommand(cmd, false, val);
+      this.updateStats();
+      this.updateOutline();
+      this.showWritingIndicator();
+    }
+    formatBlock(tag){
+      this.saveRange();
+      document.execCommand('formatBlock', false, tag);
+      this.updateStats();
+      this.updateOutline();
+    }
+
+    saveRange(){
+      const sel = window.getSelection();
+      if(sel.rangeCount > 0){
+        this._savedRange = sel.getRangeAt(0);
+      }
+    }
+    restoreRange(){
+      if(!this._savedRange) return;
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(this._savedRange);
+    }
+
+    /* ---- Standards ---- */
+    setStandard(std){
+      this.currentStandard = std;
+      this.paper.setAttribute('data-standard', std);
+      $$('.standard-btn').forEach(b => b.classList.toggle('active', b.dataset.std === std));
+      $('#f-std').textContent = std.toUpperCase();
+      this.updateStats();
+    }
+
+    /* ---- Cover & page numbers ---- */
+    toggleCover(){
+      this.cover.classList.toggle('visible');
+      $('#toggle-cover').checked = this.cover.classList.contains('visible');
+      this.updateStats();
+    }
+    togglePageNumbers(){
+      this.showPageNums = !this.showPageNums;
+      $('#page-numbers').classList.toggle('visible', this.showPageNums);
+      $('#toggle-pagenums').checked = this.showPageNums;
+      this.updateStats();
+    }
+    /* Update cover page placeholders to follow the active language. */
+    updateCoverPlaceholders(){
+      const map = {
+        'cover-top-top': 'thesis.cover_institution',
+        'cover-mid .author': 'thesis.cover_author',
+        'cover-mid .title': 'thesis.cover_title',
+        'cover-mid .cover-top': 'thesis.cover_course',
+        'cover-bottom': 'thesis.cover_city'
+      };
+      // Only update placeholders when the field is empty or matches a known placeholder
+      const placeholders = {
+        institution: I.t('thesis.cover_institution'),
+        author: I.t('thesis.cover_author'),
+        title: I.t('thesis.cover_title'),
+        course: I.t('thesis.cover_course'),
+        city: I.t('thesis.cover_city'),
+        year: I.t('thesis.cover_year')
+      };
+      const knownValues = ['INSTITUTION NAME','NOME DA INSTITUIÇÃO','Author Name','Nome do(a) Autor(a)',
+        'Title of Academic Work','Título do Trabalho Acadêmico','Course / Program','Curso / Programa',
+        'City','Cidade','Year','Ano','Nome da instituição','Nome do(a) autor(a)'];
+      $$('#cover-page [contenteditable="true"]').forEach(node => {
+        const txt = (node.textContent || '').trim();
+        if(!txt || knownValues.indexOf(txt) >= 0){
+          // Pick a sensible placeholder based on position
+          if(node.classList.contains('cover-top') && node.parentElement.classList.contains('cover-top')) {
+            // top header
+            if(txt === '' || knownValues.indexOf(txt) >= 0) node.textContent = placeholders.institution;
+          } else if(node.classList.contains('author')) node.textContent = placeholders.author;
+          else if(node.classList.contains('title')) node.textContent = placeholders.title;
+          else if(node.classList.contains('cover-top') && node.parentElement.classList.contains('cover-mid')) node.textContent = placeholders.course;
+          else if(node.classList.contains('cover-bottom')) node.textContent = placeholders.city + ' / ' + placeholders.year;
+        }
+      });
+    }
+
+    /* ---- Find & Replace ---- */
+    toggleFindBar(){
+      const bar = $('#find-bar');
+      bar.classList.toggle('open');
+      if(bar.classList.contains('open')){
+        $('#find-input').focus();
+      }
+    }
+    findNext(){
+      this.find($('#find-input').value, true);
+    }
+    findPrev(){
+      this.find($('#find-input').value, false);
+    }
+    find(query, forward){
+      if(!query){ return; }
+      const caseSensitive = $('#find-case').checked;
+      const useRegex = $('#find-regex').checked;
+      let regex;
+      try{
+        regex = useRegex ? new RegExp(query, caseSensitive ? '' : 'i') : null;
+      }catch(e){
+        toast('Invalid regex', 'danger'); return;
+      }
+      const text = this.editor.innerText;
+      // Use window.find for native browser search (works for editable content)
+      if(window.find){
+        const found = window.find(query, caseSensitive, !forward, false, false, false, false);
+        if(!found) toast('Not found', 'warn', 1000);
+      }
+    }
+    replaceNext(){
+      const find = $('#find-input').value;
+      const replace = $('#replace-input').value;
+      if(!find) return;
+      const sel = window.getSelection();
+      if(sel.toString() === find){
+        document.execCommand('insertText', false, replace);
+      }
+      this.findNext();
+    }
+    replaceAll(){
+      const find = $('#find-input').value;
+      const replace = $('#replace-input').value;
+      if(!find) return;
+      // Use a simpler approach: walk text nodes
+      const walker = document.createTreeWalker(this.editor, NodeFilter.SHOW_TEXT, null);
+      const nodes = [];
+      let n;
+      while(n = walker.nextNode()) nodes.push(n);
+      let count = 0;
+      const caseSensitive = $('#find-case').checked;
+      nodes.forEach(node => {
+        const text = node.textContent;
+        if(caseSensitive ? text.indexOf(find) >= 0 : text.toLowerCase().indexOf(find.toLowerCase()) >= 0){
+          const newText = caseSensitive ? text.split(find).join(replace) : text.replace(new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'), replace);
+          if(newText !== text){
+            node.textContent = newText;
+            count++;
+          }
+        }
+      });
+      toast('Replaced ' + count + ' occurrence(s)', 'success');
+      this.updateStats();
+    }
+
+    /* ---- Insert elements ---- */
+    insertHR(){ this.exec('insertHorizontalRule'); }
+    insertBlockquote(){ this.formatBlock('blockquote'); }
+    insertCode(){
+      this.saveRange();
+      const sel = window.getSelection();
+      if(!sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const pre = document.createElement('pre');
+      pre.textContent = sel.toString() || 'code';
+      range.deleteContents();
+      range.insertNode(pre);
+      this.updateStats();
+    }
+    insertFootnote(){
+      this.footnoteCount++;
+      const id = 'fn-' + this.footnoteCount;
+      this.saveRange();
+      const a = document.createElement('a');
+      a.href = '#' + id;
+      a.className = 'footnote';
+      a.textContent = '[' + this.footnoteCount + ']';
+      a.id = 'fnref-' + this.footnoteCount;
+      const sel = window.getSelection();
+      if(sel.rangeCount){
+        const r = sel.getRangeAt(0);
+        r.deleteContents();
+        r.insertNode(a);
+      }
+      // Add the footnote text at the bottom
+      const fn = document.createElement('div');
+      fn.id = id;
+      fn.style.fontSize = '9pt';
+      fn.style.marginTop = '6pt';
+      fn.style.borderTop = '1px solid #000';
+      fn.style.paddingTop = '4pt';
+      fn.innerHTML = '[' + this.footnoteCount + '] <em>Footnote text.</em>';
+      this.editor.appendChild(fn);
+      toast('Footnote ' + this.footnoteCount + ' inserted', 'success', 1200);
+    }
+    insertPageBreak(){
+      this.saveRange();
+      const div = document.createElement('div');
+      div.className = 'page-break';
+      div.contentEditable = false;
+      div.textContent = '— Page Break —';
+      const sel = window.getSelection();
+      if(sel.rangeCount){
+        const r = sel.getRangeAt(0);
+        r.deleteContents();
+        r.insertNode(div);
+        r.collapse(false);
+      }
+      this.updateStats();
+    }
+
+    insertStructure(kind){
+      this.saveRange();
+      this.restoreRange();
+      this.editor.focus();
+      const std = this.currentStandard;
+      const isPt = (std === 'abnt');
+      let html = '';
+      if(kind === 'abstract'){
+        html = isPt
+          ? '<h1>RESUMO</h1><p>Resumo do trabalho.</p><p><strong>Palavras-chave:</strong> palavra1; palavra2; palavra3.</p>'
+          : '<h1>ABSTRACT</h1><p>Abstract of the work.</p><p><strong>Keywords:</strong> word1; word2; word3.</p>';
+      }else if(kind === 'toc'){
+        html = '<h1 data-toc-title="1">' + (isPt ? 'SUMÁRIO' : 'TABLE OF CONTENTS') + '</h1>' +
+               '<div class="toc-container" contenteditable="false" data-toc="1"></div>';
+      }else if(kind === 'references'){
+        html = '<h1>' + (isPt ? 'REFERÊNCIAS' : 'REFERENCES') + '</h1><p>Use the References menu to insert formatted citations.</p>';
+      }else if(kind === 'intro'){
+        html = '<h1>' + (isPt ? '1 INTRODUÇÃO' : '1 INTRODUCTION') + '</h1><p>Introduction text.</p>';
+      }else if(kind === 'conclusion'){
+        html = '<h1>' + (isPt ? 'CONSIDERAÇÕES FINAIS' : 'CONCLUSION') + '</h1><p>Conclusion text.</p>';
+      }
+      document.execCommand('insertHTML', false, html);
+      this.updateStats();
+      this.updateOutline();
+      // If TOC was inserted, populate it immediately
+      if(kind === 'toc') this.updateTOC();
+    }
+
+    /* ---- Real TOC generation ---- */
+    updateTOC(){
+      const containers = $$('.toc-container', this.editor);
+      if(containers.length === 0) return;
+      // Number headings sequentially (skip the TOC title itself)
+      const headings = Array.from(this.editor.querySelectorAll('h1, h2, h3, h4'))
+        .filter(h => !h.hasAttribute('data-toc-title'));
+      // Build numbered TOC
+      const numbers = [0,0,0,0];
+      const tocItems = [];
+      headings.forEach((h, i) => {
+        const level = parseInt(h.tagName[1], 10) - 1;
+        numbers[level]++;
+        for(let j = level + 1; j < 4; j++) numbers[j] = 0;
+        const num = numbers.slice(0, level + 1).join('.');
+        const id = h.id || ('heading-' + i);
+        h.id = id;
+        const text = (h.textContent || '').trim() || '(untitled)';
+        tocItems.push(`<div class="toc-line toc-l${level+1}"><span class="toc-num">${num}</span> <a href="#${id}" class="toc-link">${this.escapeHtml(text)}</a></div>`);
+      });
+      const tocHtml = tocItems.length
+        ? tocItems.join('')
+        : '<div class="toc-empty">[No headings yet — add H1/H2/H3 to generate the table of contents.]</div>';
+      containers.forEach(c => { c.innerHTML = tocHtml; });
+      // Wire up clicks to scroll smoothly
+      $$('.toc-link', this.editor).forEach(a => {
+        a.addEventListener('click', e => {
+          e.preventDefault();
+          const target = document.getElementById(a.getAttribute('href').slice(1));
+          if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+        });
+      });
+    }
+    escapeHtml(s){
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    insertImage(src, alt){
+      this.saveRange();
+      const img = '<img src="' + src + '" alt="' + (alt||'') + '">';
+      document.execCommand('insertHTML', false, img);
+      this.updateStats();
+    }
+    insertTable(rows, cols){
+      this.saveRange();
+      let html = '<table><thead><tr>';
+      for(let c = 0; c < cols; c++) html += '<th>H' + (c+1) + '</th>';
+      html += '</tr></thead><tbody>';
+      for(let r = 0; r < rows; r++){
+        html += '<tr>';
+        for(let c = 0; c < cols; c++) html += '<td>·</td>';
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      document.execCommand('insertHTML', false, html);
+      this.updateStats();
+    }
+    insertLink(text, url){
+      this.saveRange();
+      const html = '<a href="' + url + '" target="_blank">' + text + '</a>';
+      document.execCommand('insertHTML', false, html);
+    }
+
+    /* ---- Reference generator ---- */
+    openReferenceModal(tab){
+      this.currentRefTab = tab || 'book';
+      $$('.ref-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === this.currentRefTab));
+      this.renderRefFields();
+      this.updateRefPreview();
+      openModal('modal-ref');
+    }
+    renderRefFields(){
+      const container = $('#ref-fields');
+      container.innerHTML = '';
+      const tab = this.currentRefTab;
+      const fields = {
+        book: ['author','year','title','publisher','city','edition'],
+        article: ['author','year','title','journal','volume','issue','pages'],
+        web: ['author','year','title','url','access'],
+        thesis: ['author','year','title','school','type','city']
+      };
+      fields[tab].forEach(f => {
+        const row = el('div', {class:'field'},
+          el('label', {}, I.t('thesis.ref_'+f) || f),
+          el('input', {type:'text', id:'ref-'+f, oninput:() => this.updateRefPreview()})
+        );
+        container.appendChild(row);
+      });
+      // Add thesis type dropdown if thesis
+      if(tab === 'thesis'){
+        const sel = el('div', {class:'field'},
+          el('label', {}, I.t('thesis.ref_type')),
+          el('select', {id:'ref-type-select', onchange:() => this.updateRefPreview()},
+            el('option', {value:'ms'}, I.t('thesis.thesis_type_ms')),
+            el('option', {value:'phd'}, I.t('thesis.thesis_type_phd')),
+            el('option', {value:'tcc'}, I.t('thesis.thesis_type_tcc'))
+          )
+        );
+        container.appendChild(sel);
+      }
+    }
+    getRefData(){
+      const data = {};
+      $$('#ref-fields input').forEach(i => {
+        data[i.id.replace('ref-','')] = i.value;
+      });
+      const typeSel = $('#ref-type-select');
+      if(typeSel) data.type = typeSel.value;
+      return data;
+    }
+    formatRef(data){
+      const std = this.currentStandard;
+      const tab = this.currentRefTab;
+      const A = (s) => (s || '').trim();
+      if(tab === 'book'){
+        if(std === 'apa') return `${A(data.author)} (${A(data.year)}). <i>${A(data.title)}</i> (${A(data.edition)} ed.). ${A(data.publisher)}.`;
+        if(std === 'mla') return `${A(data.author)}. <i>${A(data.title)}</i>. ${A(data.edition)} ed., ${A(data.publisher)}, ${A(data.year)}.`;
+        // ABNT
+        return `${A(data.author).toUpperCase()}. ${A(data.title)}. ${A(data.edition)} ed. ${A(data.city)}: ${A(data.publisher)}, ${A(data.year)}.`;
+      }
+      if(tab === 'article'){
+        if(std === 'apa') return `${A(data.author)} (${A(data.year)}). ${A(data.title)}. <i>${A(data.journal)}</i>, ${A(data.volume)}(${A(data.issue)}), ${A(data.pages)}.`;
+        if(std === 'mla') return `${A(data.author)}. "${A(data.title)}." <i>${A(data.journal)}</i>, vol. ${A(data.volume)}, no. ${A(data.issue)}, ${A(data.year)}, pp. ${A(data.pages)}.`;
+        return `${A(data.author).toUpperCase()}. ${A(data.title)}. <b>${A(data.journal)}</b>, ${A(data.city)}, v. ${A(data.volume)}, n. ${A(data.issue)}, p. ${A(data.pages)}, ${A(data.year)}.`;
+      }
+      if(tab === 'web'){
+        if(std === 'apa') return `${A(data.author)} (${A(data.year)}). <i>${A(data.title)}</i>. Retrieved ${A(data.access)}, from ${A(data.url)}`;
+        if(std === 'mla') return `${A(data.author)}. "${A(data.title)}." <i>Web</i>, ${A(data.year)}, ${A(data.url)}. Accessed ${A(data.access)}.`;
+        return `${A(data.author).toUpperCase()}. ${A(data.title)}. Disponível em: ${A(data.url)}. Acesso em: ${A(data.access)}.`;
+      }
+      if(tab === 'thesis'){
+        const typeLabel = {ms:'Dissertação (Mestrado)', phd:'Tese (Doutorado)', tcc:'TCC'}[data.type] || data.type;
+        if(std === 'apa') return `${A(data.author)} (${A(data.year)}). <i>${A(data.title)}</i> [${typeLabel}]. ${A(data.school)}.`;
+        if(std === 'mla') return `${A(data.author)}. "${A(data.title)}." ${typeLabel}. ${A(data.school)}, ${A(data.year)}.`;
+        return `${A(data.author).toUpperCase()}. ${A(data.title)}. ${A(data.year)}. ${typeLabel} – ${A(data.school)}, ${A(data.city)}.`;
+      }
+      return '';
+    }
+    updateRefPreview(){
+      const data = this.getRefData();
+      const html = this.formatRef(data);
+      $('#ref-preview').innerHTML = html || '<em style="color:#888">Fill in the fields to see preview…</em>';
+    }
+    insertReference(){
+      const data = this.getRefData();
+      const html = this.formatRef(data);
+      closeModal('modal-ref');
+      this.saveRange();
+      this.restoreRange();
+      document.execCommand('insertHTML', false, '<p>' + html + '</p>');
+      toast(I.t('thesis.toast_ref_inserted'), 'success');
+      this.updateStats();
+    }
+    copyReference(){
+      const html = this.formatRef(this.getRefData());
+      const text = html.replace(/<[^>]+>/g, '');
+      navigator.clipboard.writeText(text).then(() => toast('Copied', 'success', 1000));
+    }
+
+    /* ---- Outline ---- */
+    updateOutline(){
+      const list = $('#outline-list');
+      list.innerHTML = '';
+      const headings = this.editor.querySelectorAll('h1, h2, h3, h4');
+      headings.forEach((h, i) => {
+        const tag = h.tagName.toLowerCase();
+        const item = el('div', {class:'outline-item ' + tag, onclick:() => h.scrollIntoView({behavior:'smooth', block:'start'})}, h.textContent || ('(empty ' + tag + ')'));
+        list.appendChild(item);
+      });
+      if(headings.length === 0){
+        list.innerHTML = '<div style="font-family:var(--font-ui);font-size:10px;color:var(--c-muted)">No headings yet.</div>';
+      }
+    }
+
+    /* ---- Stats ---- */
+    updateStats(){
+      const text = this.editor.innerText || '';
+      const words = (text.match(/\b\w+\b/g) || []).length;
+      const chars = text.length;
+      const paras = this.editor.querySelectorAll('p').length;
+      const sent = (text.match(/[.!?]+/g) || []).length;
+      // Estimate pages based on words-per-page for the current standard
+      const wpp = this.currentStandard === 'abnt' ? 300 : 250;
+      const pages = Math.max(1, Math.ceil(words / wpp) + (this.cover.classList.contains('visible') ? 1 : 0));
+      const readMin = Math.ceil(words / 200);
+      $('#stat-words').textContent = words.toLocaleString();
+      $('#stat-chars').textContent = chars.toLocaleString();
+      $('#stat-paras').textContent = paras;
+      $('#stat-sent').textContent = sent;
+      $('#stat-pages').textContent = pages;
+      $('#stat-read').textContent = readMin + ' min';
+      $('#f-words').textContent = words;
+      // Page numbers footer
+      if(this.showPageNums){
+        $('#page-numbers').textContent = I.t('common.pages').replace(/^./, c => c.toUpperCase()) + ': 1 / ' + pages;
+      }
+      // Daily goal
+      const today = new Date().toDateString();
+      const goal = this.settings.goal || 1000;
+      const todayKey = 'thesis_words_' + today;
+      const todayWords = parseInt(localStorage.getItem(todayKey) || '0', 10);
+      const total = Math.max(todayWords, words);
+      localStorage.setItem(todayKey, String(total));
+      const pct = clamp((total / goal) * 100, 0, 100);
+      $('#goal-fill').style.width = pct + '%';
+      $('#goal-text').textContent = total + ' / ' + goal;
+      // Zen mode word count
+      $('#zen-wc').textContent = words + ' ' + I.t('common.words');
+      this.updateOutline();
+      // Auto-refresh any TOC in the document
+      this.updateTOC();
+    }
+
+    /* ---- Documents ---- */
+    loadDocuments(){
+      try{
+        this.documents = JSON.parse(localStorage.getItem('thesis_docs') || '[]');
+      }catch(e){ this.documents = []; }
+      this.renderDocList();
+    }
+    saveToStorage(){
+      try{
+        localStorage.setItem('thesis_docs', JSON.stringify(this.documents));
+      }catch(e){
+        toast('Storage quota exceeded', 'danger');
+      }
+    }
+    renderDocList(){
+      const list = $('#doc-list');
+      list.innerHTML = '';
+      $('#doc-count').textContent = String(this.documents.length);
+      if(this.documents.length === 0){
+        list.innerHTML = '<div style="font-family:var(--font-ui);font-size:10px;color:var(--c-muted);padding:8px">' + I.t('thesis.no_docs') + '</div>';
+        return;
+      }
+      this.documents.forEach(doc => {
+        const item = el('div', {
+          class:'doc-item' + (doc.id === this.currentDocId ? ' active' : ''),
+          onclick:() => this.loadDocument(doc.id)
+        },
+          el('div', {class:'doc-name'}, doc.name || 'Untitled'),
+          el('div', {class:'doc-meta'}, this.fmtDate(doc.modified) + ' · ' + (doc.wordCount || 0) + ' words')
+        );
+        // Delete button
+        const del = el('button', {
+          style:{float:'right', background:'transparent', border:'none', cursor:'pointer', color:doc.id === this.currentDocId ? '#fff' : 'var(--c-danger)'},
+          onclick:e => { e.stopPropagation(); this.deleteDocument(doc.id); }
+        }, '×');
+        item.insertBefore(del, item.firstChild);
+        list.appendChild(item);
+      });
+    }
+    newDocument(){
+      this.currentDocId = null;
+      this.editor.innerHTML = '<h1>' + I.t('common.new_document') + '</h1><p>' + I.t('thesis.welcome') + '</p>';
+      this.footnoteCount = 0;
+      this.cover.classList.remove('visible');
+      this.updateStats();
+      this.renderDocList();
+      $('#f-doc').textContent = '—';
+      toast(I.t('common.new_document'), 'info', 1200);
+    }
+    openSaveModal(){
+      const cur = this.documents.find(d => d.id === this.currentDocId);
+      $('#save-name').value = cur ? cur.name : '';
+      openModal('modal-save');
+    }
+    saveDocument(){
+      const name = $('#save-name').value || 'Untitled';
+      const html = this.editor.innerHTML;
+      const coverHtml = this.cover.classList.contains('visible') ? this.cover.innerHTML : '';
+      const text = this.editor.innerText;
+      const wordCount = (text.match(/\b\w+\b/g) || []).length;
+      const now = Date.now();
+      if(this.currentDocId){
+        const doc = this.documents.find(d => d.id === this.currentDocId);
+        if(doc){
+          doc.name = name;
+          doc.content = html;
+          doc.cover = coverHtml;
+          doc.standard = this.currentStandard;
+          doc.modified = now;
+          doc.wordCount = wordCount;
+          doc.footnoteCount = this.footnoteCount;
+        }
+      }else{
+        const id = now;
+        this.documents.push({
+          id, name, content: html, cover: coverHtml,
+          standard: this.currentStandard, modified: now, created: now,
+          wordCount, footnoteCount: this.footnoteCount
+        });
+        this.currentDocId = id;
+      }
+      this.saveToStorage();
+      this.renderDocList();
+      closeModal('modal-save');
+      $('#f-doc').textContent = name;
+      toast(I.t('thesis.toast_doc_saved'), 'success');
+    }
+    loadDocument(id){
+      const doc = this.documents.find(d => d.id === id);
+      if(!doc) return;
+      this.currentDocId = id;
+      this.editor.innerHTML = doc.content || '';
+      if(doc.cover){
+        this.cover.innerHTML = doc.cover;
+        this.cover.classList.add('visible');
+      }else{
+        this.cover.classList.remove('visible');
+      }
+      this.footnoteCount = doc.footnoteCount || 0;
+      this.setStandard(doc.standard || 'abnt');
+      this.updateStats();
+      this.renderDocList();
+      $('#f-doc').textContent = doc.name;
+      toast(I.t('thesis.toast_doc_loaded'), 'success', 1200);
+    }
+    deleteDocument(id){
+      if(!confirm(I.t('common.confirm_delete'))) return;
+      this.documents = this.documents.filter(d => d.id !== id);
+      if(this.currentDocId === id){
+        this.currentDocId = null;
+        this.newDocument();
+      }
+      this.saveToStorage();
+      this.renderDocList();
+    }
+    clearDocument(){
+      this.editor.innerHTML = '<p></p>';
+      this.footnoteCount = 0;
+      this.updateStats();
+      closeModal('modal-clear');
+      toast(I.t('common.clear'), 'success', 1200);
+    }
+
+    /* ---- Settings ---- */
+    loadSettings(){
+      try{
+        this.settings = Object.assign(this.settings, JSON.parse(localStorage.getItem('thesis_settings') || '{}'));
+      }catch(e){}
+      this.applySettings();
+    }
+    saveSettings(){
+      this.settings.goal = parseInt($('#set-goal').value, 10) || 1000;
+      this.settings.autosave = parseInt($('#set-autosave').value, 10) || 30;
+      this.settings.spellcheck = $('#set-spell').checked;
+      this.settings.width = $('#set-width').value;
+      try{ localStorage.setItem('thesis_settings', JSON.stringify(this.settings)); }catch(e){}
+      this.applySettings();
+      closeModal('modal-settings');
+      toast(I.t('common.saved'), 'success');
+    }
+    applySettings(){
+      this.editor.spellcheck = this.settings.spellcheck;
+      this.paper.setAttribute('data-width', this.settings.width);
+      $('#set-goal').value = this.settings.goal;
+      $('#set-autosave').value = this.settings.autosave;
+      $('#set-spell').checked = this.settings.spellcheck;
+      $('#set-width').value = this.settings.width;
+    }
+
+    /* ---- Zoom & Zen ---- */
+    applyZoom(z){
+      this.zoomLevel = clamp(z, 0.3, 2.5);
+      this.paper.style.transform = `scale(${this.zoomLevel})`;
+      this.paper.style.transformOrigin = 'top center';
+    }
+    toggleZen(){
+      document.body.classList.toggle('zen-mode');
+      if(document.body.classList.contains('zen-mode')){
+        toast('Zen mode. Press F11 to exit.', 'info', 1500);
+      }
+    }
+
+    /* ---- Export ---- */
+    openExport(){
+      openModal('modal-export');
+    }
+    doExport(){
+      const fmt = $('#export-formats .active').dataset.fmt;
+      const name = $('#exp-name').value || 'document';
+      const includeCover = $('#exp-include-cover').checked;
+      const includePageNums = $('#exp-include-pagenums').checked;
+      // Build a clean copy of the paper for export
+      const exportNode = this.paper.cloneNode(true);
+      // Reset zoom
+      exportNode.style.transform = '';
+      exportNode.style.transformOrigin = '';
+      // Hide/show cover and page numbers
+      if(!includeCover){
+        const cover = exportNode.querySelector('#cover-page');
+        if(cover) cover.classList.remove('visible');
+      }
+      if(!includePageNums){
+        const pn = exportNode.querySelector('#page-numbers');
+        if(pn) pn.classList.remove('visible');
+      }
+      // Remove editor-specific stuff
+      exportNode.querySelectorAll('.page-break').forEach(el => {
+        el.textContent = '';
+        el.style.borderTop = 'none';
+      });
+
+      if(fmt === 'html'){
+        this.exportHTML(exportNode, name);
+      }else if(fmt === 'txt'){
+        this.exportTxt(exportNode, name);
+      }else if(fmt === 'pdf'){
+        this.exportPDF(exportNode, name);
+      }else if(fmt === 'docx'){
+        this.exportDOCX(exportNode, name);
+      }else if(fmt === 'odt'){
+        this.exportODT(exportNode, name);
+      }
+    }
+    exportHTML(node, name){
+      const std = this.currentStandard;
+      const fonts = {abnt:'Arial, sans-serif', apa:'Times New Roman, serif', mla:'Times New Roman, serif'};
+      const lineH = {abnt:'1.5', apa:'2.0', mla:'2.0'};
+      const html = `<!DOCTYPE html>
+<html lang="${I.getLang()}">
+<head>
+<meta charset="UTF-8">
+<title>${name}</title>
+<style>
+body{margin:0;padding:2cm;background:#fff;font-family:${fonts[std]};font-size:12pt;line-height:${lineH[std]};color:#000}
+#paper{max-width:210mm;margin:0 auto}
+h1{font-size:16pt;text-transform:uppercase;text-align:center}
+h2{font-size:14pt}h3{font-size:12pt;font-weight:700}h4{font-size:12pt;font-weight:700;font-style:italic}
+p{text-indent:1.25cm;text-align:justify}
+blockquote{border-left:3px solid #888;padding-left:1cm;font-style:italic;color:#444;margin:6pt 1cm}
+pre{background:#f4f4f4;padding:8pt;border:1px solid #ccc;font-family:'Courier New',monospace;font-size:10pt}
+img{max-width:100%;height:auto;display:block;margin:8pt auto}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #000;padding:4pt 6pt}
+th{background:#eee;font-weight:700}
+hr{border:none;border-top:1px solid #000;margin:12pt 0}
+.page-break{page-break-after:always;height:0;overflow:hidden}
+a{color:#2D7DD2;text-decoration:underline}
+#cover-page{display:flex;flex-direction:column;justify-content:space-between;min-height:8cm;text-align:center;border-bottom:1px solid #000;padding-bottom:2cm;margin-bottom:2cm}
+#page-numbers{text-align:center;font-size:10pt;color:#666;margin-top:12pt}
+</style>
+</head>
+<body>
+<div id="paper">${node.innerHTML}</div>
+</body>
+</html>`;
+      const blob = new Blob([html], {type:'text/html'});
+      FloatExport.saveBlob(blob, FloatExport.sanitizeFilename(name, 'html'));
+      toast(I.t('common.exported'), 'success');
+      closeModal('modal-export');
+    }
+    exportTxt(node, name){
+      const text = node.innerText;
+      const blob = new Blob([text], {type:'text/plain'});
+      FloatExport.saveBlob(blob, FloatExport.sanitizeFilename(name, 'txt'));
+      toast(I.t('common.exported'), 'success');
+      closeModal('modal-export');
+    }
+    exportPDF(node, name){
+      // Use html2canvas + jsPDF
+      toast('Generating PDF…', 'info', 1500);
+      // Insert the node into a temporary visible container so html2canvas can render it
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'fixed';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.background = '#fff';
+      tempContainer.appendChild(node);
+      document.body.appendChild(tempContainer);
+      // Load html2canvas if needed
+      const doExport = () => {
+        html2canvas(node, {scale:2, useCORS:true, backgroundColor:'#FFFFFF', scrollY:0}).then(canvas => {
+          tempContainer.remove();
+          FloatExport.canvasToPDF(canvas, name, {background:'#FFFFFF', orientation:'portrait', margin_mm:0})
+            .then(() => { toast(I.t('thesis.toast_export_pdf'), 'success'); closeModal('modal-export'); })
+            .catch(err => { console.error(err); toast(I.t('common.failed') + ': ' + err.message, 'danger'); });
+        }).catch(err => {
+          tempContainer.remove();
+          console.error(err);
+          toast(I.t('common.failed') + ': ' + err.message, 'danger');
+        });
+      };
+      if(typeof html2canvas === 'undefined'){
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = doExport;
+        s.onerror = () => { tempContainer.remove(); toast('Failed to load html2canvas', 'danger'); };
+        document.head.appendChild(s);
+      }else{
+        doExport();
+      }
+    }
+    exportDOCX(node, name){
+      toast('Generating DOCX…', 'info', 1500);
+      FloatExport.htmlToDocx(node, name, {title:name, author:'Float Suite Thesis'})
+        .then(() => { toast(I.t('thesis.toast_export_docx'), 'success'); closeModal('modal-export'); })
+        .catch(err => { console.error(err); toast(I.t('common.failed') + ': ' + err.message, 'danger'); });
+    }
+    exportODT(node, name){
+      toast('Generating ODT…', 'info', 1500);
+      FloatExport.htmlToODT(node, name, {title:name})
+        .then(() => { toast(I.t('thesis.toast_export_odt'), 'success'); closeModal('modal-export'); })
+        .catch(err => { console.error(err); toast(I.t('common.failed') + ': ' + err.message, 'danger'); });
+    }
+
+    /* ---- Open link modal ---- */
+    openLinkModal(){
+      this.saveRange();
+      const sel = window.getSelection();
+      $('#link-text').value = sel ? sel.toString() : '';
+      $('#link-url').value = '';
+      openModal('modal-link');
+    }
+
+    /* ---- Autosave ---- */
+    initAutosave(){
+      const save = () => {
+        if(this.currentDocId){
+          const doc = this.documents.find(d => d.id === this.currentDocId);
+          if(doc){
+            doc.content = this.editor.innerHTML;
+            doc.cover = this.cover.classList.contains('visible') ? this.cover.innerHTML : '';
+            doc.standard = this.currentStandard;
+            doc.modified = Date.now();
+            doc.wordCount = (this.editor.innerText.match(/\b\w+\b/g) || []).length;
+            doc.footnoteCount = this.footnoteCount;
+            this.saveToStorage();
+          }
+        }
+      };
+      this.autosaveTimer = setInterval(save, (this.settings.autosave || 30) * 1000);
+      window.addEventListener('beforeunload', save);
+      // Debounced stats update on input
+      let statsTimer;
+      this.editor.addEventListener('input', () => {
+        clearTimeout(statsTimer);
+        statsTimer = setTimeout(() => {
+          this.updateStats();
+          this.showWritingIndicator();
+        }, 300);
+      });
+    }
+    showWritingIndicator(){
+      const ind = $('#writing-indicator');
+      ind.classList.add('visible');
+      clearTimeout(this._writeTimer);
+      this._writeTimer = setTimeout(() => ind.classList.remove('visible'), 1200);
+    }
+
+    /* ---- Clock ---- */
+    startClock(){
+      setInterval(() => {
+        // Could update a clock display, but the footer is small
+      }, 60000);
+    }
+
+    /* ---- Date formatting ---- */
+    fmtDate(ts){
+      const d = new Date(ts);
+      const today = new Date();
+      if(d.toDateString() === today.toDateString()) return I.t('common.today') + ' ' + d.toLocaleTimeString(I.getLang(), {hour:'2-digit', minute:'2-digit'});
+      if(d.toDateString() === new Date(today.getFullYear(), today.getMonth(), today.getDate()-1).toDateString()) return I.t('common.yesterday');
+      return d.toLocaleDateString(I.getLang());
+    }
+
+    /* ---- UI bindings ---- */
+    bindUI(){
+      // Header buttons
+      $('#btn-find').addEventListener('click', () => this.toggleFindBar());
+      $('#btn-zen').addEventListener('click', () => this.toggleZen());
+      $('#btn-export').addEventListener('click', () => this.openExport());
+      $('#zen-exit').addEventListener('click', () => this.toggleZen());
+
+      // Sidebar buttons
+      $('#btn-new-doc').addEventListener('click', () => this.newDocument());
+      $('#btn-save-doc').addEventListener('click', () => this.openSaveModal());
+      $('#save-confirm').addEventListener('click', () => this.saveDocument());
+      $$('.standard-btn').forEach(b => b.addEventListener('click', () => this.setStandard(b.dataset.std)));
+      $$('.insert-btn').forEach(b => b.addEventListener('click', () => {
+        const kind = b.dataset.ins;
+        if(kind === 'image') openModal('modal-image');
+        else if(kind === 'table') openModal('modal-table');
+        else if(kind === 'link') this.openLinkModal();
+        else if(kind === 'hr') this.insertHR();
+        else if(kind === 'quote') this.insertBlockquote();
+        else if(kind === 'code') this.insertCode();
+        else if(kind === 'footnote') this.insertFootnote();
+        else if(kind === 'pagebreak') this.insertPageBreak();
+        else if(kind === 'abstract') this.insertStructure('abstract');
+        else if(kind === 'toc') this.insertStructure('toc');
+        else if(kind === 'intro') this.insertStructure('intro');
+        else if(kind === 'conclusion') this.insertStructure('conclusion');
+        else if(kind === 'refs') this.insertStructure('references');
+        else if(kind === 'reference') this.openReferenceModal();
+      }));
+      $('#toggle-cover').addEventListener('change', e => { if(e.target.checked) this.cover.classList.add('visible'); else this.cover.classList.remove('visible'); });
+      $('#toggle-pagenums').addEventListener('change', e => { if(e.target.checked !== this.showPageNums) this.togglePageNumbers(); });
+      $('#btn-settings').addEventListener('click', () => openModal('modal-settings'));
+      $('#btn-clear').addEventListener('click', () => openModal('modal-clear'));
+      $('#clear-confirm').addEventListener('click', () => this.clearDocument());
+
+      // Settings
+      $('#set-width').addEventListener('change', e => {
+        this.settings.width = e.target.value;
+        this.applySettings();
+      });
+
+      // Find bar
+      $('#find-input').addEventListener('keydown', e => {
+        if(e.key === 'Enter'){ e.preventDefault(); if(e.shiftKey) this.findPrev(); else this.findNext(); }
+      });
+      $('#replace-input').addEventListener('keydown', e => {
+        if(e.key === 'Enter'){ e.preventDefault(); this.replaceNext(); }
+      });
+      $('#find-next').addEventListener('click', () => this.findNext());
+      $('#find-prev').addEventListener('click', () => this.findPrev());
+      $('#replace-one').addEventListener('click', () => this.replaceNext());
+      $('#replace-all').addEventListener('click', () => this.replaceAll());
+
+      // Rich toolbar
+      $$('.rich-toolbar button[data-cmd]').forEach(b => {
+        b.addEventListener('click', () => {
+          this.exec(b.dataset.cmd);
+          b.classList.toggle('active');
+          setTimeout(() => b.classList.remove('active'), 200);
+        });
+      });
+      $('#rt-block').addEventListener('change', e => this.formatBlock(e.target.value));
+      $('#rt-font').addEventListener('change', e => {
+        this.saveRange();
+        this.restoreRange();
+        document.execCommand('fontName', false, e.target.value);
+      });
+      $('#rt-size').addEventListener('change', e => {
+        this.saveRange();
+        this.restoreRange();
+        document.execCommand('fontSize', false, e.target.value);
+      });
+      $('#rt-fore').addEventListener('input', e => {
+        this.saveRange();
+        this.restoreRange();
+        document.execCommand('foreColor', false, e.target.value);
+      });
+      $('#rt-hl').addEventListener('input', e => {
+        this.saveRange();
+        this.restoreRange();
+        document.execCommand('hiliteColor', false, e.target.value);
+      });
+
+      // Zoom controls
+      $('#zoom-in').addEventListener('click', () => this.applyZoom(this.zoomLevel * 1.1));
+      $('#zoom-out').addEventListener('click', () => this.applyZoom(this.zoomLevel / 1.1));
+      $('#zoom-reset').addEventListener('click', () => this.applyZoom(1));
+
+      // Export modal
+      $('#export-formats').addEventListener('click', e => {
+        const f = e.target.closest('.chip'); if(!f) return;
+        $$('#export-formats .chip').forEach(x => x.classList.remove('active'));
+        f.classList.add('active');
+      });
+      $('#exp-go').addEventListener('click', () => this.doExport());
+
+      // Reference modal
+      $$('.ref-tab').forEach(t => t.addEventListener('click', () => {
+        $$('.ref-tab').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        this.currentRefTab = t.dataset.tab;
+        this.renderRefFields();
+        this.updateRefPreview();
+      }));
+      $('#ref-insert').addEventListener('click', () => this.insertReference());
+      $('#ref-copy').addEventListener('click', () => this.copyReference());
+
+      // Image modal
+      $('#img-file').addEventListener('change', e => {
+        const f = e.target.files[0];
+        if(!f) return;
+        const reader = new FileReader();
+        reader.onload = () => { this._pendingImg = reader.result; };
+        reader.readAsDataURL(f);
+      });
+      $('#img-insert').addEventListener('click', () => {
+        const url = $('#img-url').value;
+        const src = this._pendingImg || url;
+        if(!src){ toast('Pick a file or enter URL', 'warn'); return; }
+        this.insertImage(src, $('#img-alt').value);
+        closeModal('modal-image');
+        this._pendingImg = null;
+        $('#img-url').value = ''; $('#img-alt').value = ''; $('#img-file').value = '';
+      });
+
+      // Table modal
+      $('#tbl-insert').addEventListener('click', () => {
+        this.insertTable(parseInt($('#tbl-rows').value,10), parseInt($('#tbl-cols').value,10));
+        closeModal('modal-table');
+      });
+
+      // Link modal
+      $('#link-insert').addEventListener('click', () => {
+        const text = $('#link-text').value;
+        const url = $('#link-url').value;
+        if(!url){ toast('URL required', 'warn'); return; }
+        this.insertLink(text || url, url);
+        closeModal('modal-link');
+      });
+    }
+    bindEditor(){
+      // Update stats on editor changes
+      this.editor.addEventListener('input', () => {
+        clearTimeout(this._statsTimer);
+        this._statsTimer = setTimeout(() => this.updateStats(), 200);
+      });
+      this.editor.addEventListener('mouseup', () => this.saveRange());
+      this.editor.addEventListener('keyup', () => this.saveRange());
+      // Plain-text paste (no formatting from external sources)
+      this.editor.addEventListener('paste', e => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+        document.execCommand('insertText', false, text);
+      });
+    }
+  }
+
+  window.App = new ThesisApp();
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => App.init());
+  }else{
+    App.init();
+  }
+})();
+</script>
+</body>
+</html>

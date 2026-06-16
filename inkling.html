@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inkling — Float Suite</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23FF90E8'/%3E%3Ctext x='16' y='23' font-family='Arial Black' font-size='20' text-anchor='middle' fill='%23000'%3EI%3C/text%3E%3C/svg%3E">
+<meta name="theme-color" content="#FF90E8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared/float.css">
+<script src="shared/i18n.js"></script>
+<script src="shared/float.js"></script>
+<script src="shared/exporters.js"></script>
+
+<style>
+:root{
+  --header-h:50px;
+  --menu-h:32px;
+  --toolbar-w:54px;
+  --right-w:280px;
+  --footer-h:24px;
+}
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;background:var(--c-bg)}
+
+/* Header */
+.app-header{height:var(--header-h);padding:0 14px;background:var(--c-bg);border-bottom:var(--bw) solid var(--c-border);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:12px}
+.app-logo{font-family:var(--font-head);font-size:16px;background:var(--c-pink);padding:6px 12px;border:var(--bw) solid var(--c-border);box-shadow:3px 3px 0 var(--c-border);transform:rotate(-1.5deg);color:#000;white-space:nowrap;display:inline-flex;align-items:baseline;gap:4px}
+.version-badge{font-family:var(--font-ui);font-size:9px;background:var(--c-text);color:var(--c-bg);padding:2px 6px}
+.header-center{display:flex;gap:6px;align-items:center}
+.header-right{display:flex;gap:6px;align-items:center}
+.preset-btn{font-family:var(--font-ui);font-size:9px;padding:5px 8px;background:var(--c-surface);border:2px solid var(--c-border);cursor:pointer;text-transform:uppercase;letter-spacing:.5px}
+.preset-btn:hover{background:var(--c-pink);color:#000}
+
+/* Layout */
+#workspace{flex:1;display:flex;overflow:hidden;min-height:0;position:relative}
+
+/* Left toolbar */
+#toolbar{width:var(--toolbar-w);background:var(--c-panel);border-right:var(--bw-sm) solid var(--c-border);overflow-y:auto;display:flex;flex-direction:column;padding:8px 0;gap:4px;align-items:center;flex-shrink:0}
+.tool-btn{width:38px;height:38px;background:var(--c-surface);border:2px solid var(--c-border);cursor:pointer;display:grid;place-items:center;font-size:13px;box-shadow:2px 2px 0 var(--c-border);transition:transform .1s,background .1s}
+.tool-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--c-border)}
+.tool-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--c-border)}
+.tool-btn.active{background:var(--c-pink);color:#000}
+.tool-sep{width:60%;height:1px;background:var(--c-border);margin:6px 0;opacity:.3}
+
+/* Viewport */
+#viewport{flex:1;position:relative;overflow:hidden;background:var(--c-bg);background-image:radial-gradient(var(--c-border) 1px, transparent 1px);background-size:20px 20px;background-position:0 0}
+#viewport.show-grid{background-image:radial-gradient(var(--c-border) 1px, transparent 1px),linear-gradient(var(--c-border) 1px,transparent 1px),linear-gradient(90deg,var(--c-border) 1px,transparent 1px);background-size:20px 20px,20px 20px,20px 20px}
+#artboard-container{position:absolute;left:50%;top:50%;transform-origin:center center}
+#artboard{background:#fff;box-shadow:0 0 0 1px var(--c-border), 8px 8px 0 rgba(0,0,0,.08)}
+#artboard svg{display:block;cursor:default}
+#artboard svg .vel:hover{outline:1px dashed var(--c-info)}
+#artboard svg .selected{outline:2px dashed var(--c-pink)}
+
+/* Selection box and transform handles */
+.sel-box{position:absolute;border:1px dashed var(--c-info);pointer-events:none}
+.transform-handle{position:absolute;width:8px;height:8px;background:var(--c-pink);border:1px solid var(--c-border);transform:translate(-50%,-50%);pointer-events:auto;cursor:nwse-resize}
+
+/* Right panel */
+#properties{width:var(--right-w);background:var(--c-panel);border-left:var(--bw-sm) solid var(--c-border);overflow:hidden;display:flex;flex-direction:column;flex-shrink:0}
+.panel-tabs{display:flex;border-bottom:var(--bw-sm) solid var(--c-border);background:var(--c-surface)}
+.panel-tab{flex:1;padding:8px 4px;background:transparent;border:none;font-family:var(--font-ui);font-size:10px;font-weight:700;text-transform:uppercase;cursor:pointer;color:var(--c-text)}
+.panel-tab:hover{background:var(--c-surface2)}
+.panel-tab.active{background:var(--c-pink);color:#000}
+.panel-content{flex:1;overflow-y:auto}
+.pane{display:none;padding:10px}
+.pane.active{display:block}
+.prop-section{margin-bottom:14px}
+.prop-section .section-title{font-family:var(--font-ui);font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;color:var(--c-muted);border-bottom:1px solid var(--c-border);padding-bottom:4px}
+.prop-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.prop-row label{font-family:var(--font-ui);font-size:10px;color:var(--c-muted);min-width:50px;text-transform:uppercase;letter-spacing:.5px}
+.prop-row input,.prop-row select{flex:1;padding:4px 6px;font-family:var(--font-ui);font-size:11px;border:1px solid var(--c-border);background:var(--c-surface)}
+.prop-row input[type="color"]{width:30px;height:24px;padding:0;flex:0 0 auto}
+.prop-row input[type="number"]{max-width:80px}
+.coord-group{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.coord-group .prop-row{margin:0}
+.btn-row{display:flex;gap:4px;flex-wrap:wrap}
+.btn-row .btn{flex:1;font-size:10px;padding:6px 4px;min-width:auto}
+
+/* Layers */
+.layer-row{display:flex;align-items:center;gap:6px;padding:6px;background:var(--c-surface);border:1px solid var(--c-border);margin-bottom:4px;cursor:pointer;font-family:var(--font-ui);font-size:11px}
+.layer-row:hover{background:var(--c-surface2)}
+.layer-row.active{background:var(--c-pink);color:#000}
+.layer-row .vis{cursor:pointer;font-size:11px}
+.layer-row .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Assets */
+.shape-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.shape-cell{aspect-ratio:1;background:var(--c-surface);border:2px solid var(--c-border);cursor:pointer;display:grid;place-items:center;font-size:14px}
+.shape-cell:hover{background:var(--c-pink);color:#000}
+.palette-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.palette-row .csw{width:20px;height:20px;border:1px solid var(--c-border);cursor:pointer}
+.palette-row .csw:hover{transform:scale(1.15)}
+
+/* Status bar */
+#status-bar{height:var(--footer-h);background:var(--c-text);color:var(--c-bg);display:flex;align-items:center;padding:0 14px;font-family:var(--font-ui);font-size:10px;gap:18px;flex-shrink:0}
+#status-bar .status-item{display:inline-flex;align-items:center;gap:4px}
+#status-bar .status-item .k{color:var(--c-muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* Pen overlay */
+.pen-handle{position:absolute;width:8px;height:8px;background:var(--c-pink);border:1px solid var(--c-border);transform:translate(-50%,-50%);pointer-events:none}
+
+/* Modal */
+.export-modal-section{margin-top:14px;padding-top:14px;border-top:1px dashed var(--c-border)}
+
+@media(max-width:900px){:root{--right-w:240px}}
+@media(max-width:680px){
+  #properties{display:none}
+  .header-center{display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-left">
+    <a href="index.html" class="app-logo">INKLING</a>
+    <span class="version-badge">v4.1</span>
+  </div>
+  <div class="header-center">
+    <button class="preset-btn" data-w="900" data-h="600">900×600</button>
+    <button class="preset-btn" data-w="1920" data-h="1080">1920×1080</button>
+    <button class="preset-btn" data-w="1080" data-h="1080">1080²</button>
+    <button class="preset-btn" data-w="2480" data-h="3508">A4</button>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-sm" id="btn-import"><i class="fa-solid fa-image"></i> <span data-i18n="common.import">Import</span></button>
+    <input type="file" id="file-input" accept=".svg,image/*" style="display:none">
+    <button class="btn btn-sm" id="btn-export-png" title="Export PNG"><i class="fa-solid fa-image"></i> PNG</button>
+    <button class="btn btn-sm" id="btn-export" title="Export SVG"><i class="fa-solid fa-file-export"></i> SVG</button>
+    <button class="btn btn-sm" id="btn-undo" title="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+    <button class="btn btn-sm" id="btn-redo" title="Redo"><i class="fa-solid fa-rotate-right"></i></button>
+    <a href="index.html" class="btn btn-sm" title="Back to Float Suite"><i class="fa-solid fa-arrow-left"></i></a>
+  </div>
+</header>
+<div id="hud-mount"></div>
+
+<div id="workspace">
+  <nav id="toolbar" aria-label="Tools">
+    <button class="tool-btn active" data-tool="select" title="Select (V)"><i class="fa-solid fa-arrow-pointer"></i></button>
+    <button class="tool-btn" data-tool="direct" title="Direct Select (A)"><i class="fa-solid fa-up-down-left-right"></i></button>
+    <button class="tool-btn" data-tool="pen" title="Pen (P)"><i class="fa-solid fa-pen-nib"></i></button>
+    <button class="tool-btn" data-tool="freehand" title="Freehand (B)"><i class="fa-solid fa-pencil"></i></button>
+    <button class="tool-btn" data-tool="text" title="Text (T)"><i class="fa-solid fa-font"></i></button>
+    <button class="tool-btn" data-tool="eyedropper" title="Eyedropper (I)"><i class="fa-solid fa-eye-dropper"></i></button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" data-tool="rect" title="Rectangle (R)"><i class="fa-regular fa-square"></i></button>
+    <button class="tool-btn" data-tool="ellipse" title="Ellipse (E)"><i class="fa-regular fa-circle"></i></button>
+    <button class="tool-btn" data-tool="line" title="Line (L)"><i class="fa-solid fa-minus"></i></button>
+    <button class="tool-btn" data-tool="polygon" title="Polygon (Y)"><i class="fa-solid fa-shapes"></i></button>
+    <button class="tool-btn" data-tool="star" title="Star (S)"><i class="fa-solid fa-star"></i></button>
+    <button class="tool-btn" data-tool="arrow" title="Arrow"><i class="fa-solid fa-arrow-right-long"></i></button>
+    <div class="tool-sep"></div>
+    <button class="tool-btn" data-tool="hand" title="Hand (H)"><i class="fa-solid fa-hand"></i></button>
+    <button class="tool-btn" data-tool="zoom" title="Zoom (Z)"><i class="fa-solid fa-magnifying-glass"></i></button>
+  </nav>
+
+  <main id="viewport">
+    <div id="artboard-container">
+      <div id="artboard">
+        <svg id="artboard-svg" width="900" height="600" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+    </div>
+  </main>
+
+  <aside id="properties" aria-label="Properties">
+    <div class="panel-tabs">
+      <button class="panel-tab active" data-tab="props" data-i18n="inkling.tab_props">Properties</button>
+      <button class="panel-tab" data-tab="layers" data-i18n="inkling.tab_layers">Layers</button>
+      <button class="panel-tab" data-tab="assets" data-i18n="inkling.tab_assets">Assets</button>
+    </div>
+    <div class="panel-content">
+
+      <!-- Properties pane -->
+      <div class="pane active" id="pane-props">
+        <div class="prop-section" id="section-typography">
+          <div class="section-title" data-i18n="inkling.prop_typography">Typography</div>
+          <div class="prop-row">
+            <label data-i18n="common.font">Font</label>
+            <select id="prop-font">
+              <option>Arial</option><option>Helvetica</option><option>Times New Roman</option>
+              <option>Georgia</option><option>Verdana</option><option>Courier New</option>
+              <option>Impact</option><option>Trebuchet MS</option>
+            </select>
+          </div>
+          <div class="prop-row">
+            <label data-i18n="common.size">Size</label>
+            <input type="number" id="prop-fontsize" min="6" max="400" value="24">
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_transform">Transform</div>
+          <div class="coord-group">
+            <div class="prop-row"><label>X</label><input type="number" id="prop-x" step="1"></div>
+            <div class="prop-row"><label>Y</label><input type="number" id="prop-y" step="1"></div>
+            <div class="prop-row"><label>W</label><input type="number" id="prop-w" step="1"></div>
+            <div class="prop-row"><label>H</label><input type="number" id="prop-h" step="1"></div>
+          </div>
+          <div class="prop-row">
+            <label data-i18n="common.rotation">Rotation</label>
+            <input type="number" id="prop-rot" min="-360" max="360" step="1" value="0">
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_appearance">Appearance</div>
+          <div class="prop-row">
+            <label data-i18n="common.color">Fill</label>
+            <input type="color" id="prop-fill" value="#FF90E8">
+            <input type="number" id="prop-fill-op" min="0" max="100" value="100" title="Opacity">
+          </div>
+          <div class="prop-row">
+            <label>Stroke</label>
+            <input type="color" id="prop-stroke" value="#000000">
+            <input type="number" id="prop-stroke-w" min="0" max="40" step="0.5" value="2">
+          </div>
+          <div class="prop-row">
+            <label data-i18n="common.opacity">Opacity</label>
+            <input type="range" id="prop-opacity" min="0" max="100" value="100">
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_actions">Actions</div>
+          <div class="btn-row">
+            <button class="btn btn-xs" id="btn-topath" data-i18n="inkling.action_topath">To Path</button>
+            <button class="btn btn-xs" id="btn-group" data-i18n="inkling.action_group">Group</button>
+            <button class="btn btn-xs" id="btn-ungroup" data-i18n="inkling.action_ungroup">Ungroup</button>
+            <button class="btn btn-xs" id="btn-flatten" data-i18n="inkling.action_flatten">Flatten</button>
+            <button class="btn btn-xs" id="btn-front" data-i18n="inkling.action_front">Front</button>
+            <button class="btn btn-xs" id="btn-back" data-i18n="inkling.action_back">Back</button>
+            <button class="btn btn-xs" id="btn-fwd" data-i18n="inkling.action_fwd">Fwd</button>
+            <button class="btn btn-xs" id="btn-bwd" data-i18n="inkling.action_bwd">Bwd</button>
+            <button class="btn btn-xs" id="btn-dup" data-i18n="inkling.action_dup">Duplicate</button>
+            <button class="btn btn-xs btn-danger" id="btn-del" data-i18n="inkling.action_del">Delete</button>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_align">Align & Distribute</div>
+          <div class="btn-row">
+            <button class="btn btn-xs" onclick="App.alignSelected('left')" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
+            <button class="btn btn-xs" onclick="App.alignSelected('ch')" title="Align Center H"><i class="fa-solid fa-align-center"></i></button>
+            <button class="btn btn-xs" onclick="App.alignSelected('right')" title="Align Right"><i class="fa-solid fa-align-right"></i></button>
+            <button class="btn btn-xs" onclick="App.alignSelected('top')" title="Align Top"><i class="fa-solid fa-arrow-up"></i></button>
+            <button class="btn btn-xs" onclick="App.alignSelected('cv')" title="Align Center V"><i class="fa-solid fa-arrows-up-down"></i></button>
+            <button class="btn btn-xs" onclick="App.alignSelected('bottom')" title="Align Bottom"><i class="fa-solid fa-arrow-down"></i></button>
+          </div>
+          <div class="btn-row" style="margin-top:6px">
+            <button class="btn btn-xs" onclick="App.alignSelected('artboard-h')" data-i18n="inkling.align_ch">Artboard H</button>
+            <button class="btn btn-xs" onclick="App.alignSelected('artboard-v')" data-i18n="inkling.align_cv">Artboard V</button>
+          </div>
+        </div>
+
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_boolean">Boolean Ops</div>
+          <div class="btn-row">
+            <button class="btn btn-xs" onclick="App.boolOp('unite')" data-i18n="inkling.bool_unite">Unite</button>
+            <button class="btn btn-xs" onclick="App.boolOp('intersect')" data-i18n="inkling.bool_intersect">Intersect</button>
+            <button class="btn btn-xs" onclick="App.boolOp('subtract')" data-i18n="inkling.bool_subtract">Subtract</button>
+            <button class="btn btn-xs" onclick="App.boolOp('exclude')" data-i18n="inkling.bool_exclude">Exclude</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layers pane -->
+      <div class="pane" id="pane-layers">
+        <div class="btn-row" style="margin-bottom:10px">
+          <button class="btn btn-xs" id="btn-layer-add" title="Add"><i class="fa-solid fa-plus"></i></button>
+          <button class="btn btn-xs" id="btn-layer-dup" title="Duplicate"><i class="fa-solid fa-copy"></i></button>
+          <button class="btn btn-xs" id="btn-layer-del" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          <button class="btn btn-xs" id="btn-layer-up" title="Up"><i class="fa-solid fa-arrow-up"></i></button>
+          <button class="btn btn-xs" id="btn-layer-down" title="Down"><i class="fa-solid fa-arrow-down"></i></button>
+        </div>
+        <div id="layers-list"></div>
+      </div>
+
+      <!-- Assets pane -->
+      <div class="pane" id="pane-assets">
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_shapes">Shapes Library</div>
+          <div class="shape-grid" id="shape-grid"></div>
+        </div>
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_palettes">Color Palettes</div>
+          <div id="palettes"></div>
+        </div>
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_artboard">Artboard</div>
+          <div class="prop-row"><label>W</label><input type="number" id="art-w" value="900"></div>
+          <div class="prop-row"><label>H</label><input type="number" id="art-h" value="600"></div>
+          <div class="prop-row"><label data-i18n="inkling.artboard_bg">Background</label><input type="color" id="art-bg" value="#FFFFFF"></div>
+        </div>
+        <div class="prop-section">
+          <div class="section-title" data-i18n="inkling.prop_view">View</div>
+          <div class="prop-row"><label><input type="checkbox" id="chk-grid" checked> <span data-i18n="inkling.show_grid">Grid</span></label></div>
+          <div class="prop-row"><label><input type="checkbox" id="chk-rulers"> <span data-i18n="inkling.show_rulers">Rulers</span></label></div>
+          <div class="prop-row"><label><input type="checkbox" id="chk-snap"> <span data-i18n="inkling.snap_grid">Snap to Grid</span></label></div>
+          <div class="prop-row"><label><input type="checkbox" id="chk-snap-obj"> <span data-i18n="inkling.snap_objects">Snap to Objects</span></label></div>
+          <div class="prop-row"><label data-i18n="inkling.grid_size">Grid Size</label><input type="number" id="grid-size" value="20" min="2" max="200"></div>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+</div>
+
+<footer id="status-bar">
+  <span class="status-item"><span class="k">Zoom</span> <span id="sb-zoom">100%</span></span>
+  <span class="status-item"><span class="k">Tool</span> <span id="sb-tool">select</span></span>
+  <span class="status-item"><span class="k">Selected</span> <span id="sb-sel">0</span></span>
+  <span class="status-item"><span class="k">Cursor</span> <span id="sb-cursor">0, 0</span></span>
+  <span class="status-item" style="margin-left:auto"><span class="k">Inkling</span> Ready</span>
+</footer>
+
+<!-- Export modal -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal">
+    <div class="modal-header"><h3 data-i18n="inkling.modal_export_title">Export SVG</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label data-i18n="inkling.filename">Filename</label><input type="text" id="exp-name" value="artwork"></div>
+      <div class="field-row"><input type="checkbox" id="exp-clean" checked> <label for="exp-clean" data-i18n="inkling.clean_export">Clean export</label></div>
+      <div class="field-row"><input type="checkbox" id="exp-embed"> <label for="exp-embed" data-i18n="inkling.embed_fonts">Embed fonts</label></div>
+      <div class="export-modal-section">
+        <div style="font-family:var(--font-ui);font-size:11px;text-transform:uppercase;margin-bottom:8px">Other formats</div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="exp-svg">SVG</button>
+          <button class="btn btn-sm" id="exp-png">PNG</button>
+          <button class="btn btn-sm" id="exp-pdf">PDF</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="Float.closeModal('modal-export')" data-i18n="common.cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const {$,$$,el,clamp,uid,toast,openModal,closeModal} = Float;
+  const I = FloatI18n;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  /* ============================================================
+     INKLING — Vector editor
+     ============================================================ */
+  class InklingApp {
+    constructor(){
+      this.svg = null;        // <svg> root
+      this.layer = null;      // current <g> layer
+      this.artboard = null;
+      this.container = null;
+      this.viewport = null;
+
+      this.artW = 900;
+      this.artH = 600;
+      this.zoom = 1;
+      this.panX = 0; this.panY = 0;
+      this.isPanning = false;
+      this.panStart = null;
+
+      this.tool = 'select';
+      this.selectedIds = new Set();
+      this.isDrawing = false;
+      this.isDragging = false;
+      this.startPos = null;
+      this.lastPos = null;
+      this.currentEl = null;
+      this.dragStartBBox = null;
+      this.dragStartPoses = null;
+
+      // Pen
+      this.penPoints = [];
+      this.penPath = null;
+
+      // Freehand
+      this.freehandPts = [];
+
+      // Text
+      this.textOverlay = null;
+      this.textTarget = null;
+
+      // View
+      this.showGrid = true;
+      this.showRulers = false;
+      this.snapEnabled = false;
+      this.snapObjects = false;
+      this.snapGrid = 20;
+
+      // Layers
+      this._lockedIds = new Set();
+      this._hiddenIds = new Set();
+
+      // Clipboard
+      this._clipboard = null;
+      this._idCounter = 1;
+
+      // Palettes
+      this.palettes = {
+        brutalist:['#FFDE59','#FF90E8','#23C9FF','#00C853','#FF3355','#FF8C00','#9966FF','#000000','#FFFFFF'],
+        pastel:['#FFD6E0','#FFEFC4','#C4EFCB','#C4E5FF','#E0C4FF','#FFC4C4','#C4FFFF','#FFEEC4','#DCC4FF'],
+        neon:['#FF00E5','#00FFD0','#FFFF00','#00FFFF','#FF00A0','#A0FF00','#00A0FF','#FFA000','#A000FF'],
+        earth:['#5C3A21','#8B5A2B','#A0522D','#C19A6B','#D2B48C','#E5D3B3','#F5DEB3','#FFE4B5','#FFF8DC']
+      };
+      this.quickColors = ['#FFDE59','#FF90E8','#23C9FF','#00C853','#FF3355','#FF8C00','#9966FF','#000000','#FFFFFF','#888888'];
+    }
+
+    init(){
+      this.svg = $('#artboard-svg');
+      this.layer = document.createElementNS(NS, 'g');
+      this.layer.setAttribute('id', 'layer-1');
+      this.svg.appendChild(this.layer);
+      this.artboard = $('#artboard');
+      this.container = $('#artboard-container');
+      this.viewport = $('#viewport');
+
+      this.resizeArtboard(900, 600);
+      this.bindEvents();
+      this.bindUI();
+      this.bindHUD();
+      this.initAssets();
+      this.initAutosave();
+      Float.initModals();
+      Float.applyTheme(Float.getThemeMode());
+      Float.updateThemeIcons();
+      I.apply();
+      I.on(() => { this.bindHUD(); this.renderLayers(); });
+      this.centerView();
+      toast(I.t('inkling.toast_ready'), 'success', 1400);
+    }
+
+    /* ---- HUD ---- */
+    bindHUD(){
+      const spec = {
+        menus: [
+          {i18n:'common.file', items:[
+            {i18n:'common.import', shortcut:{mod:['Ctrl'],key:'O'}, cmd:'file.import'},
+            {sep:true},
+            {i18n:'common.export_svg', shortcut:{mod:['Ctrl'],key:'S'}, cmd:'file.exportSvg'},
+            {i18n:'common.export_png', cmd:'file.exportPng'},
+            {i18n:'common.export_pdf', cmd:'file.exportPdf'},
+          ]},
+          {i18n:'common.edit', items:[
+            {i18n:'common.undo', shortcut:{mod:['Ctrl'],key:'Z'}, cmd:'edit.undo'},
+            {i18n:'common.redo', shortcut:{mod:['Ctrl','Shift'],key:'Z'}, cmd:'edit.redo'},
+            {sep:true},
+            {i18n:'common.cut', shortcut:{mod:['Ctrl'],key:'X'}, cmd:'edit.cut'},
+            {i18n:'common.copy', shortcut:{mod:['Ctrl'],key:'C'}, cmd:'edit.copy'},
+            {i18n:'common.paste', shortcut:{mod:['Ctrl'],key:'V'}, cmd:'edit.paste'},
+            {i18n:'common.duplicate', shortcut:{mod:['Ctrl'],key:'D'}, cmd:'edit.duplicate'},
+            {sep:true},
+            {i18n:'common.delete', shortcut:{key:'Delete'}, cmd:'edit.delete'},
+            {i18n:'common.select_all', shortcut:{mod:['Ctrl'],key:'A'}, cmd:'edit.selectAll'},
+            {i18n:'common.deselect', shortcut:{key:'Escape'}, cmd:'edit.deselect'},
+          ]},
+          {i18n:'common.object', items:[
+            {i18n:'inkling.action_group', shortcut:{mod:['Ctrl'],key:'G'}, cmd:'object.group'},
+            {i18n:'inkling.action_ungroup', shortcut:{mod:['Ctrl','Shift'],key:'G'}, cmd:'object.ungroup'},
+            {i18n:'inkling.action_flatten', cmd:'object.flatten'},
+            {i18n:'inkling.action_topath', cmd:'object.topath'},
+            {sep:true},
+            {i18n:'inkling.action_front', cmd:'object.front'},
+            {i18n:'inkling.action_back', cmd:'object.back'},
+            {i18n:'inkling.action_fwd', cmd:'object.fwd'},
+            {i18n:'inkling.action_bwd', cmd:'object.bwd'},
+            {sep:true},
+            {i18n:'inkling.bool_unite', cmd:'object.unite'},
+            {i18n:'inkling.bool_intersect', cmd:'object.intersect'},
+            {i18n:'inkling.bool_subtract', cmd:'object.subtract'},
+            {i18n:'inkling.bool_exclude', cmd:'object.exclude'},
+          ]},
+          {i18n:'common.view', items:[
+            {i18n:'common.zoom_in', shortcut:{mod:['Ctrl'],key:'+'}, cmd:'view.zoomIn'},
+            {i18n:'common.zoom_out', shortcut:{mod:['Ctrl'],key:'-'}, cmd:'view.zoomOut'},
+            {i18n:'common.zoom_reset', shortcut:{mod:['Ctrl'],key:'0'}, cmd:'view.zoomReset'},
+            {i18n:'common.fit', shortcut:{key:'F'}, cmd:'view.fit'},
+            {sep:true},
+            {i18n:'inkling.show_grid', cmd:'view.grid'},
+            {i18n:'inkling.show_rulers', cmd:'view.rulers'},
+            {i18n:'inkling.snap_grid', cmd:'view.snap'},
+            {i18n:'inkling.snap_objects', cmd:'view.snapObj'},
+          ]},
+          {i18n:'common.help', items:[
+            {i18n:'common.shortcuts', shortcut:{key:'?'}, cmd:'help.shortcuts'},
+          ]},
+        ]
+      };
+
+      const cmds = [
+        {id:'file.import', i18n:'common.import', group:'file', run:() => $('#file-input').click()},
+        {id:'file.exportSvg', i18n:'common.export_svg', group:'file', run:() => this.openExport()},
+        {id:'file.exportPng', i18n:'common.export_png', group:'file', run:() => this.exportPNG()},
+        {id:'file.exportPdf', i18n:'common.export_pdf', group:'file', run:() => this.exportPDF()},
+        {id:'edit.undo', i18n:'common.undo', group:'edit', run:() => this.undo()},
+        {id:'edit.redo', i18n:'common.redo', group:'edit', run:() => this.redo()},
+        {id:'edit.cut', i18n:'common.cut', group:'edit', run:() => this.cut()},
+        {id:'edit.copy', i18n:'common.copy', group:'edit', run:() => this.copy()},
+        {id:'edit.paste', i18n:'common.paste', group:'edit', run:() => this.paste()},
+        {id:'edit.duplicate', i18n:'common.duplicate', group:'edit', run:() => this.duplicateSelection()},
+        {id:'edit.delete', i18n:'common.delete', group:'edit', run:() => this.deleteSelection()},
+        {id:'edit.selectAll', i18n:'common.select_all', group:'edit', run:() => this.selectAll()},
+        {id:'edit.deselect', i18n:'common.deselect', group:'edit', run:() => this.deselect()},
+        {id:'object.group', i18n:'inkling.action_group', group:'object', run:() => this.group()},
+        {id:'object.ungroup', i18n:'inkling.action_ungroup', group:'object', run:() => this.ungroup()},
+        {id:'object.flatten', i18n:'inkling.action_flatten', group:'object', run:() => this.flattenGroup()},
+        {id:'object.topath', i18n:'inkling.action_topath', group:'object', run:() => this.convertToPath()},
+        {id:'object.front', i18n:'inkling.action_front', group:'object', run:() => this.bringToFront()},
+        {id:'object.back', i18n:'inkling.action_back', group:'object', run:() => this.sendToBack()},
+        {id:'object.fwd', i18n:'inkling.action_fwd', group:'object', run:() => this.bringForward()},
+        {id:'object.bwd', i18n:'inkling.action_bwd', group:'object', run:() => this.sendBackward()},
+        {id:'object.unite', i18n:'inkling.bool_unite', group:'object', run:() => this.boolOp('unite')},
+        {id:'object.intersect', i18n:'inkling.bool_intersect', group:'object', run:() => this.boolOp('intersect')},
+        {id:'object.subtract', i18n:'inkling.bool_subtract', group:'object', run:() => this.boolOp('subtract')},
+        {id:'object.exclude', i18n:'inkling.bool_exclude', group:'object', run:() => this.boolOp('exclude')},
+        {id:'view.zoomIn', i18n:'common.zoom_in', group:'view', run:() => this.setZoom(this.zoom * 1.2)},
+        {id:'view.zoomOut', i18n:'common.zoom_out', group:'view', run:() => this.setZoom(this.zoom / 1.2)},
+        {id:'view.zoomReset', i18n:'common.zoom_reset', group:'view', run:() => this.setZoom(1)},
+        {id:'view.fit', i18n:'common.fit', group:'view', run:() => this.centerView()},
+        {id:'view.grid', i18n:'inkling.show_grid', group:'view', run:() => { this.showGrid = !this.showGrid; $('#chk-grid').checked = this.showGrid; $('#viewport').classList.toggle('show-grid', this.showGrid); }},
+        {id:'view.rulers', i18n:'inkling.show_rulers', group:'view', run:() => { this.showRulers = !this.showRulers; $('#chk-rulers').checked = this.showRulers; }},
+        {id:'view.snap', i18n:'inkling.snap_grid', group:'view', run:() => { this.snapEnabled = !this.snapEnabled; $('#chk-snap').checked = this.snapEnabled; }},
+        {id:'view.snapObj', i18n:'inkling.snap_objects', group:'view', run:() => { this.snapObjects = !this.snapObjects; $('#chk-snap-obj').checked = this.snapObjects; }},
+        {id:'help.shortcuts', i18n:'common.shortcuts', group:'help', run:() => Float.showShortcuts()},
+      ];
+      if(!this._cmdsRegistered){
+        cmds.forEach(c => Float.registerCommand(c));
+        this._cmdsRegistered = true;
+      }
+
+      Float.rememberSpec(spec);
+      Float.mountHUD(spec);
+
+      Float.clearShortcuts();
+      Float.addShortcut({key:'Z', mod:['Ctrl'], fn:() => this.undo(), label:I.t('common.undo'), group:'edit'});
+      Float.addShortcut({key:'Z', mod:['Ctrl','Shift'], fn:() => this.redo(), label:I.t('common.redo'), group:'edit'});
+      Float.addShortcut({key:'Y', mod:['Ctrl'], fn:() => this.redo(), label:I.t('common.redo'), group:'edit'});
+      Float.addShortcut({key:'A', mod:['Ctrl'], fn:() => this.selectAll(), label:I.t('common.select_all'), group:'edit'});
+      Float.addShortcut({key:'C', mod:['Ctrl'], fn:() => this.copy(), label:I.t('common.copy'), group:'edit'});
+      Float.addShortcut({key:'X', mod:['Ctrl'], fn:() => this.cut(), label:I.t('common.cut'), group:'edit'});
+      Float.addShortcut({key:'V', mod:['Ctrl'], fn:() => this.paste(), label:I.t('common.paste'), group:'edit'});
+      Float.addShortcut({key:'D', mod:['Ctrl'], fn:() => this.duplicateSelection(), label:I.t('common.duplicate'), group:'edit'});
+      Float.addShortcut({key:'G', mod:['Ctrl'], fn:() => this.group(), label:I.t('inkling.action_group'), group:'object'});
+      Float.addShortcut({key:'G', mod:['Ctrl','Shift'], fn:() => this.ungroup(), label:I.t('inkling.action_ungroup'), group:'object'});
+      Float.addShortcut({key:'S', mod:['Ctrl'], fn:() => this.openExport(), label:'Export SVG', group:'file'});
+      Float.addShortcut({key:'0', mod:['Ctrl'], fn:() => this.setZoom(1), label:I.t('common.zoom_reset'), group:'view'});
+      Float.addShortcut({key:'F', fn:() => this.centerView(), label:I.t('common.fit'), group:'view'});
+      Float.addShortcut({key:'V', fn:() => this.setTool('select'), label:I.t('inkling.tool_select'), group:'tools'});
+      Float.addShortcut({key:'A', fn:() => this.setTool('direct'), label:I.t('inkling.tool_direct'), group:'tools'});
+      Float.addShortcut({key:'P', fn:() => this.setTool('pen'), label:I.t('inkling.tool_pen'), group:'tools'});
+      Float.addShortcut({key:'B', fn:() => this.setTool('freehand'), label:I.t('inkling.tool_freehand'), group:'tools'});
+      Float.addShortcut({key:'T', fn:() => this.setTool('text'), label:I.t('inkling.tool_text'), group:'tools'});
+      Float.addShortcut({key:'I', fn:() => this.setTool('eyedropper'), label:I.t('inkling.tool_eyedropper'), group:'tools'});
+      Float.addShortcut({key:'R', fn:() => this.setTool('rect'), label:I.t('inkling.tool_rect'), group:'tools'});
+      Float.addShortcut({key:'E', fn:() => this.setTool('ellipse'), label:I.t('inkling.tool_ellipse'), group:'tools'});
+      Float.addShortcut({key:'L', fn:() => this.setTool('line'), label:I.t('inkling.tool_line'), group:'tools'});
+      Float.addShortcut({key:'Y', fn:() => this.setTool('polygon'), label:I.t('inkling.tool_polygon'), group:'tools'});
+      Float.addShortcut({key:'S', fn:() => this.setTool('star'), label:I.t('inkling.tool_star'), group:'tools'});
+      Float.addShortcut({key:'H', fn:() => this.setTool('hand'), label:I.t('inkling.tool_hand'), group:'tools'});
+      Float.addShortcut({key:'Z', fn:() => this.setTool('zoom'), label:I.t('inkling.tool_zoom'), group:'tools'});
+      Float.addShortcut({key:'Delete', fn:() => this.deleteSelection(), label:I.t('common.delete'), group:'edit'});
+      Float.addShortcut({key:'ArrowLeft', fn:() => this.nudge(-1, 0), label:'Nudge left', group:'tools'});
+      Float.addShortcut({key:'ArrowRight', fn:() => this.nudge(1, 0), label:'Nudge right', group:'tools'});
+      Float.addShortcut({key:'ArrowUp', fn:() => this.nudge(0, -1), label:'Nudge up', group:'tools'});
+      Float.addShortcut({key:'ArrowDown', fn:() => this.nudge(0, 1), label:'Nudge down', group:'tools'});
+    }
+
+    /* ---- Artboard & view ---- */
+    resizeArtboard(w, h){
+      this.artW = w; this.artH = h;
+      this.svg.setAttribute('width', w);
+      this.svg.setAttribute('height', h);
+      this.svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+      $('#art-w').value = w; $('#art-h').value = h;
+      this.centerView();
+    }
+
+    setZoom(z){
+      this.zoom = clamp(z, 0.05, 32);
+      this.container.style.transform = `translate(-50%, -50%) scale(${this.zoom})`;
+      $('#sb-zoom').textContent = Math.round(this.zoom * 100) + '%';
+    }
+
+    centerView(){
+      const vp = this.viewport;
+      const vw = vp.clientWidth, vh = vp.clientHeight;
+      const z = Math.min(vw / this.artW, vh / this.artH) * 0.85;
+      this.zoom = z;
+      this.container.style.transform = `translate(-50%, -50%) scale(${this.zoom})`;
+      $('#sb-zoom').textContent = Math.round(this.zoom * 100) + '%';
+    }
+
+    /* ---- Tools ---- */
+    setTool(slug){
+      this.tool = slug;
+      $$('.tool-btn').forEach(b => b.classList.toggle('active', b.dataset.tool === slug));
+      this.svg.style.cursor = ({
+        select:'default', direct:'default', pen:'crosshair', freehand:'crosshair',
+        text:'text', eyedropper:'crosshair', rect:'crosshair', ellipse:'crosshair',
+        line:'crosshair', polygon:'crosshair', star:'crosshair', arrow:'crosshair',
+        hand:'grab', zoom:'zoom-in'
+      })[slug] || 'default';
+      $('#sb-tool').textContent = slug;
+      // Finish pen if switching away
+      if(slug !== 'pen' && this.penPath){ this.finishPen(); }
+    }
+
+    snapPt(p){
+      if(!this.snapEnabled) return p;
+      return {x: Math.round(p.x / this.snapGrid) * this.snapGrid, y: Math.round(p.y / this.snapGrid) * this.snapGrid};
+    }
+
+    /* ---- Events ---- */
+    bindEvents(){
+      this.svg.addEventListener('pointerdown', e => this.onStart(e));
+      window.addEventListener('pointermove', e => this.onMove(e));
+      window.addEventListener('pointerup', e => this.onEnd(e));
+
+      // Wheel zoom / pan
+      this.viewport.addEventListener('wheel', e => {
+        if(e.ctrlKey || e.metaKey){
+          e.preventDefault();
+          this.setZoom(this.zoom * (e.deltaY < 0 ? 1.1 : 0.9));
+        }
+      }, {passive:false});
+
+      // Cursor info
+      this.svg.addEventListener('pointermove', e => {
+        const p = this.getPos(e);
+        $('#sb-cursor').textContent = `${Math.round(p.x)}, ${Math.round(p.y)}`;
+      });
+
+      // Click element to select
+      this.svg.addEventListener('click', e => {
+        const target = e.target.closest('.vel');
+        if(target && this.tool === 'select'){
+          if(e.shiftKey) this.toggleSelect(target);
+          else this.selectSingle(target);
+        }
+      });
+
+      // Double-click to edit text
+      this.svg.addEventListener('dblclick', e => {
+        const target = e.target.closest('.vel');
+        if(target && target.tagName.toLowerCase() === 'text'){
+          this.initTextEdit(target, e);
+        }
+      });
+    }
+
+    getPos(e){
+      const pt = this.svg.createSVGPoint();
+      pt.x = e.clientX; pt.y = e.clientY;
+      const ctm = this.svg.getScreenCTM();
+      if(!ctm) return {x:0, y:0};
+      const p = pt.matrixTransform(ctm.inverse());
+      return {x: p.x, y: p.y};
+    }
+
+    onStart(e){
+      if(e.button !== 0 && e.button !== 1) return;
+      // Hand tool pans
+      if(this.tool === 'hand' || e.button === 1 || e.altKey){
+        this.isPanning = true;
+        this.panStart = {x:e.clientX, y:e.clientY, panX:this.panX, panY:this.panY};
+        e.preventDefault();
+        return;
+      }
+
+      const p = this.getPos(e);
+      const sp = this.snapPt(p);
+      this.startPos = sp;
+      this.lastPos = sp;
+
+      switch(this.tool){
+        case 'select':
+        case 'direct': {
+          // If clicked on empty space, start rect-select
+          const target = e.target.closest('.vel');
+          if(!target){
+            this.isRectSelecting = true;
+            this.rectSelStart = sp;
+            this.rectSelBox = document.createElementNS(NS, 'rect');
+            this.rectSelBox.setAttribute('fill', 'rgba(35,201,255,0.1)');
+            this.rectSelBox.setAttribute('stroke', '#23C9FF');
+            this.rectSelBox.setAttribute('stroke-dasharray', '4 2');
+            this.rectSelBox.setAttribute('x', sp.x);
+            this.rectSelBox.setAttribute('y', sp.y);
+            this.rectSelBox.setAttribute('width', 0);
+            this.rectSelBox.setAttribute('height', 0);
+            this.svg.appendChild(this.rectSelBox);
+          }else{
+            if(!this.selectedIds.has(target.id)){
+              if(!e.shiftKey) this.deselect();
+              this.selectSingle(target);
+            }
+            // Start dragging
+            this.isDragging = true;
+            this.recordDragOrigins();
+          }
+          break;
+        }
+        case 'pen':
+          this.handlePenClick(sp);
+          break;
+        case 'freehand':
+          this.isDrawing = true;
+          this.freehandPts = [sp];
+          this.currentEl = document.createElementNS(NS, 'path');
+          this.currentEl.setAttribute('fill', 'none');
+          this.currentEl.setAttribute('stroke', '#000');
+          this.currentEl.setAttribute('stroke-width', '3');
+          this.currentEl.setAttribute('stroke-linecap', 'round');
+          this.currentEl.setAttribute('stroke-linejoin', 'round');
+          this.currentEl.classList.add('vel');
+          this.currentEl.id = 'el-' + (this._idCounter++);
+          this.layer.appendChild(this.currentEl);
+          break;
+        case 'text':
+          this.createText(sp);
+          break;
+        case 'eyedropper':
+          this.pickColor(sp);
+          break;
+        case 'rect':
+        case 'ellipse':
+        case 'line':
+        case 'polygon':
+        case 'star':
+        case 'arrow':
+          this.isDrawing = true;
+          this.currentEl = this.createShapeElement(this.tool, sp);
+          this.currentEl.setAttribute('fill', '#FF90E8');
+          this.currentEl.setAttribute('stroke', '#000');
+          this.currentEl.setAttribute('stroke-width', '2');
+          this.currentEl.classList.add('vel');
+          this.currentEl.id = 'el-' + (this._idCounter++);
+          this.layer.appendChild(this.currentEl);
+          break;
+        case 'zoom':
+          this.setZoom(this.zoom * (e.altKey ? 0.9 : 1.2));
+          break;
+      }
+    }
+
+    onMove(e){
+      if(this.isPanning){
+        // Panning handled at viewport level
+        return;
+      }
+      const p = this.getPos(e);
+      const sp = this.snapPt(p);
+
+      if(this.isRectSelecting){
+        const x = Math.min(this.rectSelStart.x, sp.x);
+        const y = Math.min(this.rectSelStart.y, sp.y);
+        const w = Math.abs(sp.x - this.rectSelStart.x);
+        const h = Math.abs(sp.y - this.rectSelStart.y);
+        this.rectSelBox.setAttribute('x', x);
+        this.rectSelBox.setAttribute('y', y);
+        this.rectSelBox.setAttribute('width', w);
+        this.rectSelBox.setAttribute('height', h);
+        return;
+      }
+
+      if(this.isDragging && this.selectedIds.size > 0){
+        const dx = sp.x - this.startPos.x;
+        const dy = sp.y - this.startPos.y;
+        this.selectedIds.forEach(id => {
+          const el = document.getElementById(id);
+          if(!el) return;
+          const orig = this.dragStartPoses[id];
+          if(orig){
+            el.setAttribute('transform', `translate(${orig.tx + dx}, ${orig.ty + dy})`);
+          }
+        });
+        this.updatePropsFromSelection();
+        return;
+      }
+
+      if(!this.isDrawing) return;
+
+      switch(this.tool){
+        case 'freehand':
+          this.freehandPts.push(sp);
+          this.currentEl.setAttribute('d', this.smoothPath(this.freehandPts));
+          break;
+        case 'rect':
+          this.currentEl.setAttribute('x', Math.min(this.startPos.x, sp.x));
+          this.currentEl.setAttribute('y', Math.min(this.startPos.y, sp.y));
+          this.currentEl.setAttribute('width', Math.abs(sp.x - this.startPos.x));
+          this.currentEl.setAttribute('height', Math.abs(sp.y - this.startPos.y));
+          break;
+        case 'ellipse':
+          this.currentEl.setAttribute('cx', (this.startPos.x + sp.x) / 2);
+          this.currentEl.setAttribute('cy', (this.startPos.y + sp.y) / 2);
+          this.currentEl.setAttribute('rx', Math.max(0.5, Math.abs(sp.x - this.startPos.x) / 2));
+          this.currentEl.setAttribute('ry', Math.max(0.5, Math.abs(sp.y - this.startPos.y) / 2));
+          break;
+        case 'line':
+          this.currentEl.setAttribute('x2', sp.x);
+          this.currentEl.setAttribute('y2', sp.y);
+          break;
+        case 'polygon':
+        case 'star':
+        case 'arrow': {
+          const d = this.shapePath(this.tool, this.startPos, sp);
+          this.currentEl.setAttribute('d', d);
+          break;
+        }
+      }
+    }
+
+    onEnd(e){
+      if(this.isPanning){
+        this.isPanning = false;
+        return;
+      }
+      if(this.isRectSelecting){
+        this.finishRectSelect();
+        return;
+      }
+      if(this.isDragging){
+        this.isDragging = false;
+        this.saveState('Move');
+        return;
+      }
+      if(!this.isDrawing) return;
+      this.isDrawing = false;
+      if(this.currentEl){
+        // Auto-select the new element
+        this.deselect();
+        this.selectSingle(this.currentEl);
+        this.saveState(this.tool);
+        this.currentEl = null;
+      }
+    }
+
+    /* ---- Shape creation ---- */
+    createShapeElement(tool, p){
+      let el;
+      if(tool === 'rect') el = document.createElementNS(NS, 'rect');
+      else if(tool === 'ellipse') el = document.createElementNS(NS, 'ellipse');
+      else if(tool === 'line'){
+        el = document.createElementNS(NS, 'line');
+        el.setAttribute('x1', p.x); el.setAttribute('y1', p.y);
+        el.setAttribute('x2', p.x); el.setAttribute('y2', p.y);
+        el.setAttribute('stroke', '#000'); el.setAttribute('stroke-width', '2');
+      }
+      else el = document.createElementNS(NS, 'path');
+      if(tool === 'rect'){
+        el.setAttribute('x', p.x); el.setAttribute('y', p.y);
+        el.setAttribute('width', 0); el.setAttribute('height', 0);
+      }else if(tool === 'ellipse'){
+        el.setAttribute('cx', p.x); el.setAttribute('cy', p.y);
+        el.setAttribute('rx', 0); el.setAttribute('ry', 0);
+      }
+      return el;
+    }
+
+    shapePath(type, a, b){
+      if(type === 'polygon'){
+        const sides = 6;
+        const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+        const r = Math.max(1, Math.hypot(b.x - a.x, b.y - a.y) / 2);
+        let d = '';
+        for(let i = 0; i < sides; i++){
+          const t = (i/sides) * Math.PI * 2 - Math.PI/2;
+          const x = cx + Math.cos(t) * r;
+          const y = cy + Math.sin(t) * r;
+          d += (i === 0 ? 'M' : 'L') + x + ',' + y + ' ';
+        }
+        return d + 'Z';
+      }
+      if(type === 'star'){
+        const points = 5;
+        const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+        const r = Math.max(1, Math.hypot(b.x - a.x, b.y - a.y) / 2);
+        const ri = r * 0.5;
+        let d = '';
+        for(let i = 0; i < points * 2; i++){
+          const t = (i/(points*2)) * Math.PI * 2 - Math.PI/2;
+          const rr = i % 2 === 0 ? r : ri;
+          const x = cx + Math.cos(t) * rr;
+          const y = cy + Math.sin(t) * rr;
+          d += (i === 0 ? 'M' : 'L') + x + ',' + y + ' ';
+        }
+        return d + 'Z';
+      }
+      if(type === 'arrow'){
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const len = Math.hypot(dx, dy);
+        if(len < 1) return '';
+        const head = Math.min(20, len * 0.3);
+        const nx = dx/len, ny = dy/len;
+        const px = -ny, py = nx;
+        return `M${a.x},${a.y} L${b.x},${b.y} M${b.x},${b.y} L${b.x - nx*head + px*head*0.5},${b.y - ny*head + py*head*0.5} M${b.x},${b.y} L${b.x - nx*head - px*head*0.5},${b.y - ny*head - py*head*0.5}`;
+      }
+      return '';
+    }
+
+    smoothPath(pts){
+      if(pts.length < 2) return '';
+      let d = `M${pts[0].x},${pts[0].y}`;
+      for(let i = 1; i < pts.length; i++){
+        const p0 = pts[i-1], p1 = pts[i];
+        const mid = {x: (p0.x + p1.x)/2, y: (p0.y + p1.y)/2};
+        d += ` Q${p0.x},${p0.y} ${mid.x},${mid.y}`;
+      }
+      d += ` L${pts[pts.length-1].x},${pts[pts.length-1].y}`;
+      return d;
+    }
+
+    /* ---- Pen tool ---- */
+    handlePenClick(p){
+      this.penPoints.push(p);
+      if(this.penPoints.length === 1){
+        this.penPath = document.createElementNS(NS, 'path');
+        this.penPath.setAttribute('fill', 'none');
+        this.penPath.setAttribute('stroke', '#000');
+        this.penPath.setAttribute('stroke-width', '2');
+        this.penPath.classList.add('vel');
+        this.penPath.id = 'el-' + (this._idCounter++);
+        this.layer.appendChild(this.penPath);
+      }
+      let d = `M${this.penPoints[0].x},${this.penPoints[0].y}`;
+      for(let i = 1; i < this.penPoints.length; i++){
+        d += ` L${this.penPoints[i].x},${this.penPoints[i].y}`;
+      }
+      this.penPath.setAttribute('d', d);
+    }
+    finishPen(){
+      if(this.penPath && this.penPoints.length > 1){
+        let d = this.penPath.getAttribute('d') + ' Z';
+        this.penPath.setAttribute('d', d);
+        this.deselect();
+        this.selectSingle(this.penPath);
+        this.saveState('Pen');
+      }
+      this.penPoints = [];
+      this.penPath = null;
+    }
+
+    /* ---- Text ---- */
+    createText(p){
+      const t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', p.x);
+      t.setAttribute('y', p.y);
+      t.setAttribute('font-family', 'Arial');
+      t.setAttribute('font-size', '24');
+      t.setAttribute('fill', '#000');
+      t.setAttribute('dominant-baseline', 'hanging');
+      t.textContent = 'Text';
+      t.classList.add('vel');
+      t.id = 'el-' + (this._idCounter++);
+      this.layer.appendChild(t);
+      this.deselect();
+      this.selectSingle(t);
+      this.initTextEdit(t, null);
+      this.saveState('Text');
+    }
+
+    initTextEdit(target, e){
+      // Simple prompt-based text editing
+      const cur = target.textContent;
+      const newText = prompt(I.t('inkling.tool_text'), cur);
+      if(newText != null){
+        target.textContent = newText;
+        this.saveState('Edit text');
+      }
+    }
+
+    /* ---- Eyedropper ---- */
+    pickColor(p){
+      // Rasterize the SVG and pick the pixel
+      const xml = new XMLSerializer().serializeToString(this.svg);
+      const blob = new Blob([xml], {type:'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = this.artW; c.height = this.artH;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, this.artW, this.artH);
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(Math.floor(p.x), Math.floor(p.y), 1, 1).data;
+        const hex = '#' + [data[0],data[1],data[2]].map(v => v.toString(16).padStart(2,'0')).join('');
+        $('#prop-fill').value = hex;
+        URL.revokeObjectURL(url);
+        toast('Picked ' + hex.toUpperCase(), 'info', 1200);
+      };
+      img.src = url;
+    }
+
+    /* ---- Selection ---- */
+    selectSingle(el){
+      this.deselect();
+      if(el){
+        this.selectedIds.add(el.id);
+        el.classList.add('selected');
+      }
+      this.refreshSelectionHighlights();
+      this.updatePropsFromSelection();
+      this.renderLayers();
+    }
+    toggleSelect(el){
+      if(this.selectedIds.has(el.id)){
+        this.selectedIds.delete(el.id);
+        el.classList.remove('selected');
+      }else{
+        this.selectedIds.add(el.id);
+        el.classList.add('selected');
+      }
+      this.updatePropsFromSelection();
+      this.renderLayers();
+    }
+    selectAll(){
+      $$('.vel', this.layer).forEach(el => {
+        this.selectedIds.add(el.id);
+        el.classList.add('selected');
+      });
+      this.refreshSelectionHighlights();
+      this.updatePropsFromSelection();
+      this.renderLayers();
+    }
+    deselect(){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.remove('selected');
+      });
+      this.selectedIds.clear();
+      this.refreshSelectionHighlights();
+      this.updatePropsFromSelection();
+      this.renderLayers();
+    }
+    refreshSelectionHighlights(){
+      $('#sb-sel').textContent = String(this.selectedIds.size);
+    }
+
+    finishRectSelect(){
+      if(!this.rectSelBox){ this.isRectSelecting = false; return; }
+      const x = parseFloat(this.rectSelBox.getAttribute('x'));
+      const y = parseFloat(this.rectSelBox.getAttribute('y'));
+      const w = parseFloat(this.rectSelBox.getAttribute('width'));
+      const h = parseFloat(this.rectSelBox.getAttribute('height'));
+      this.rectSelBox.remove();
+      this.rectSelBox = null;
+      this.isRectSelecting = false;
+      if(w < 2 || h < 2) return;
+      // Select all elements intersecting the rect
+      $$('.vel', this.layer).forEach(el => {
+        try{
+          const bb = el.getBBox();
+          if(bb.x + bb.width >= x && bb.x <= x + w && bb.y + bb.height >= y && bb.y <= y + h){
+            this.selectedIds.add(el.id);
+            el.classList.add('selected');
+          }
+        }catch(e){}
+      });
+      this.refreshSelectionHighlights();
+      this.updatePropsFromSelection();
+      this.renderLayers();
+    }
+
+    recordDragOrigins(){
+      this.dragStartPoses = {};
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const t = (el.getAttribute('transform') || '').match(/translate\(([-\d.]+),\s*([-\d.]+)\)/);
+        this.dragStartPoses[id] = {
+          tx: t ? parseFloat(t[1]) : 0,
+          ty: t ? parseFloat(t[2]) : 0
+        };
+      });
+    }
+
+    nudge(dx, dy){
+      if(this.selectedIds.size === 0) return;
+      const big = event && event.shiftKey ? 10 : 1;
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const orig = this.dragStartPoses && this.dragStartPoses[id] || {tx:0, ty:0};
+        const t = (el.getAttribute('transform') || '').match(/translate\(([-\d.]+),\s*([-\d.]+)\)/);
+        const cur = t ? {x: parseFloat(t[1]), y: parseFloat(t[2])} : {x:0, y:0};
+        el.setAttribute('transform', `translate(${cur.x + dx*big}, ${cur.y + dy*big})`);
+      });
+      this.updatePropsFromSelection();
+      this.saveState('Nudge');
+    }
+
+    /* ---- Properties panel ---- */
+    updatePropsFromSelection(){
+      const ids = Array.from(this.selectedIds);
+      const el = ids.length === 1 ? document.getElementById(ids[0]) : null;
+      const section = $('#section-typography');
+      if(el && el.tagName.toLowerCase() === 'text'){
+        section.style.display = '';
+        $('#prop-font').value = el.getAttribute('font-family') || 'Arial';
+        $('#prop-fontsize').value = el.getAttribute('font-size') || 24;
+      }else{
+        section.style.display = 'none';
+      }
+      if(el){
+        try{
+          const bb = el.getBBox();
+          $('#prop-x').value = Math.round(bb.x);
+          $('#prop-y').value = Math.round(bb.y);
+          $('#prop-w').value = Math.round(bb.width);
+          $('#prop-h').value = Math.round(bb.height);
+        }catch(e){}
+        const fill = el.getAttribute('fill');
+        if(fill && fill.indexOf('#') === 0) $('#prop-fill').value = fill;
+        const stroke = el.getAttribute('stroke');
+        if(stroke && stroke.indexOf('#') === 0) $('#prop-stroke').value = stroke;
+        $('#prop-stroke-w').value = el.getAttribute('stroke-width') || 0;
+        $('#prop-opacity').value = Math.round((parseFloat(el.getAttribute('opacity') || 1)) * 100);
+      }
+    }
+
+    /* ---- Object operations ---- */
+    group(){
+      if(this.selectedIds.size < 2) return;
+      const g = document.createElementNS(NS, 'g');
+      g.classList.add('vel');
+      g.id = 'el-' + (this._idCounter++);
+      const ids = Array.from(this.selectedIds);
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) g.appendChild(el);
+      });
+      this.layer.appendChild(g);
+      this.deselect();
+      this.selectSingle(g);
+      this.saveState('Group');
+    }
+    ungroup(){
+      const ids = Array.from(this.selectedIds);
+      ids.forEach(id => {
+        const g = document.getElementById(id);
+        if(g && g.tagName.toLowerCase() === 'g'){
+          const parent = g.parentNode;
+          const children = Array.from(g.children);
+          children.forEach(c => {
+            parent.appendChild(c);
+            this.selectedIds.add(c.id);
+          });
+          g.remove();
+          this.selectedIds.delete(id);
+        }
+      });
+      this.refreshSelectionHighlights();
+      this.saveState('Ungroup');
+    }
+    flattenGroup(){
+      // Flatten: dissolve groups (one level) AND convert non-path elements to paths
+      const ids = Array.from(this.selectedIds);
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        if(el.tagName.toLowerCase() === 'g'){
+          // Move children up
+          const parent = el.parentNode;
+          Array.from(el.children).forEach(c => parent.insertBefore(c, el));
+          el.remove();
+          this.selectedIds.delete(id);
+        }
+      });
+      this.refreshSelectionHighlights();
+      this.saveState('Flatten');
+      toast(I.t('inkling.toast_flattened'), 'success', 1200);
+    }
+
+    convertToPath(){
+      const ids = Array.from(this.selectedIds);
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const tag = el.tagName.toLowerCase();
+        if(tag === 'path') return;
+        if(tag === 'rect'){
+          const x = parseFloat(el.getAttribute('x')) || 0;
+          const y = parseFloat(el.getAttribute('y')) || 0;
+          const w = parseFloat(el.getAttribute('width')) || 0;
+          const h = parseFloat(el.getAttribute('height')) || 0;
+          const d = `M${x},${y} H${x+w} V${y+h} H${x} Z`;
+          el.outerHTML = `<path id="${id}" class="vel ${el.className.baseVal || ''}" d="${d}" fill="${el.getAttribute('fill')||'#000'}" stroke="${el.getAttribute('stroke')||'none'}" stroke-width="${el.getAttribute('stroke-width')||1}"/>`;
+        }else if(tag === 'ellipse' || tag === 'circle'){
+          const cx = parseFloat(el.getAttribute('cx')) || 0;
+          const cy = parseFloat(el.getAttribute('cy')) || 0;
+          const rx = parseFloat(el.getAttribute('rx') || el.getAttribute('r')) || 0;
+          const ry = parseFloat(el.getAttribute('ry') || el.getAttribute('r')) || 0;
+          // Approximate ellipse with 4 cubic beziers
+          const k = 0.5522847498;
+          const ox = rx * k, oy = ry * k;
+          const d = `M${cx-rx},${cy} C${cx-rx},${cy-oy} ${cx-ox},${cy-ry} ${cx},${cy-ry} C${cx+ox},${cy-ry} ${cx+rx},${cy-oy} ${cx+rx},${cy} C${cx+rx},${cy+oy} ${cx+ox},${cy+ry} ${cx},${cy+ry} C${cx-ox},${cy+ry} ${cx-rx},${cy+oy} ${cx-rx},${cy} Z`;
+          el.outerHTML = `<path id="${id}" class="vel ${el.className.baseVal || ''}" d="${d}" fill="${el.getAttribute('fill')||'#000'}" stroke="${el.getAttribute('stroke')||'none'}" stroke-width="${el.getAttribute('stroke-width')||1}"/>`;
+        }else if(tag === 'line'){
+          const d = `M${el.getAttribute('x1')},${el.getAttribute('y1')} L${el.getAttribute('x2')},${el.getAttribute('y2')}`;
+          el.outerHTML = `<path id="${id}" class="vel ${el.className.baseVal || ''}" d="${d}" fill="none" stroke="${el.getAttribute('stroke')||'#000'}" stroke-width="${el.getAttribute('stroke-width')||1}"/>`;
+        }
+      });
+      this.saveState('Convert to path');
+      toast(I.t('inkling.toast_topath'), 'success', 1200);
+    }
+
+    bringToFront(){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el && el.parentNode) el.parentNode.appendChild(el);
+      });
+      this.saveState('Front');
+    }
+    sendToBack(){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el && el.parentNode) el.parentNode.insertBefore(el, el.parentNode.firstChild);
+      });
+      this.saveState('Back');
+    }
+    bringForward(){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el && el.nextSibling) el.parentNode.insertBefore(el, el.nextSibling.nextSibling);
+      });
+      this.saveState('Forward');
+    }
+    sendBackward(){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el && el.previousSibling) el.parentNode.insertBefore(el, el.previousSibling);
+      });
+      this.saveState('Backward');
+    }
+
+    duplicateSelection(){
+      const newIds = [];
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const clone = el.cloneNode(true);
+        const newId = 'el-' + (this._idCounter++);
+        clone.id = newId;
+        // Offset slightly
+        const t = (el.getAttribute('transform') || '').match(/translate\(([-\d.]+),\s*([-\d.]+)\)/);
+        const tx = t ? parseFloat(t[1]) : 0;
+        const ty = t ? parseFloat(t[2]) : 0;
+        clone.setAttribute('transform', `translate(${tx + 10}, ${ty + 10})`);
+        el.parentNode.appendChild(clone);
+        newIds.push(newId);
+      });
+      this.deselect();
+      newIds.forEach(id => this.selectedIds.add(id));
+      this.refreshSelectionHighlights();
+      this.saveState('Duplicate');
+      toast(I.t('common.duplicate'), 'success', 1200);
+    }
+
+    deleteSelection(){
+      if(this.selectedIds.size === 0) return;
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.remove();
+      });
+      this.selectedIds.clear();
+      this.refreshSelectionHighlights();
+      this.updatePropsFromSelection();
+      this.renderLayers();
+      this.saveState('Delete');
+    }
+
+    /* ---- Clipboard ---- */
+    copy(){
+      if(this.selectedIds.size === 0) return;
+      const items = [];
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) items.push(new XMLSerializer().serializeToString(el));
+      });
+      this._clipboard = items;
+      toast('Copied ' + items.length + ' element(s)', 'info', 1200);
+    }
+    cut(){
+      this.copy();
+      this.deleteSelection();
+    }
+    paste(){
+      if(!this._clipboard) return;
+      this.deselect();
+      this._clipboard.forEach(xml => {
+        const tmp = new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">' + xml + '</svg>', 'image/svg+xml');
+        const node = tmp.documentElement.firstChild;
+        if(node){
+          const clone = node.cloneNode(true);
+          const newId = 'el-' + (this._idCounter++);
+          clone.id = newId;
+          const t = (clone.getAttribute('transform') || '').match(/translate\(([-\d.]+),\s*([-\d.]+)\)/);
+          const tx = t ? parseFloat(t[1]) : 0;
+          const ty = t ? parseFloat(t[2]) : 0;
+          clone.setAttribute('transform', `translate(${tx + 10}, ${ty + 10})`);
+          this.layer.appendChild(clone);
+          this.selectedIds.add(newId);
+        }
+      });
+      this.refreshSelectionHighlights();
+      this.saveState('Paste');
+    }
+
+    /* ---- Alignment ---- */
+    alignSelected(mode){
+      if(this.selectedIds.size < 1){
+        toast(I.t('inkling.toast_no_selection'), 'warn');
+        return;
+      }
+      if(mode.startsWith('artboard-')){
+        // Align to artboard center
+        const cx = this.artW / 2, cy = this.artH / 2;
+        this.selectedIds.forEach(id => {
+          const el = document.getElementById(id);
+          if(!el) return;
+          try{
+            const bb = el.getBBox();
+            const t = (el.getAttribute('transform') || '').match(/translate\(([-\d.]+),\s*([-\d.]+)\)/);
+            const tx = t ? parseFloat(t[1]) : 0;
+            const ty = t ? parseFloat(t[2]) : 0;
+            let nx = tx, ny = ty;
+            if(mode === 'artboard-h') nx = cx - bb.x - bb.width/2;
+            if(mode === 'artboard-v') ny = cy - bb.y - bb.height/2;
+            el.setAttribute('transform', `translate(${nx}, ${ny})`);
+          }catch(e){}
+        });
+      }else if(this.selectedIds.size >= 2){
+        // Multi-selection align
+        const bboxes = [];
+        this.selectedIds.forEach(id => {
+          const el = document.getElementById(id);
+          if(el){
+            try{ bboxes.push({id, bb: el.getBBox()}); }catch(e){}
+          }
+        });
+        if(bboxes.length < 2) return;
+        const minL = Math.min(...bboxes.map(b => b.bb.x));
+        const maxR = Math.max(...bboxes.map(b => b.bb.x + b.bb.width));
+        const minT = Math.min(...bboxes.map(b => b.bb.y));
+        const maxB = Math.max(...bboxes.map(b => b.bb.y + b.bb.height));
+        const cH = (minL + maxR) / 2;
+        const cV = (minT + maxB) / 2;
+        bboxes.forEach(({id, bb}) => {
+          const el = document.getElementById(id);
+          const t = (el.getAttribute('transform') || '').match(/translate\(([-\d.]+),\s*([-\d.]+)\)/);
+          const tx = t ? parseFloat(t[1]) : 0;
+          const ty = t ? parseFloat(t[2]) : 0;
+          let nx = tx, ny = ty;
+          if(mode === 'left')   nx = tx + (minL - bb.x);
+          if(mode === 'right')  nx = tx + (maxR - (bb.x + bb.width));
+          if(mode === 'ch')     nx = tx + (cH - (bb.x + bb.width/2));
+          if(mode === 'top')    ny = ty + (minT - bb.y);
+          if(mode === 'bottom') ny = ty + (maxB - (bb.y + bb.height));
+          if(mode === 'cv')     ny = ty + (cV - (bb.y + bb.height/2));
+          el.setAttribute('transform', `translate(${nx}, ${ny})`);
+        });
+      }
+      this.saveState('Align');
+      this.updatePropsFromSelection();
+    }
+
+    /* ---- Boolean ops (simple — using SVG masks/clip-paths) ---- */
+    boolOp(op){
+      if(this.selectedIds.size < 2){
+        toast('Select 2+ elements for boolean ops', 'warn');
+        return;
+      }
+      const ids = Array.from(this.selectedIds);
+      const base = document.getElementById(ids[0]);
+      const others = ids.slice(1).map(id => document.getElementById(id)).filter(Boolean);
+      if(!base){ return; }
+
+      // We'll use clip-path / mask approach which is widely supported
+      const uidV = uid();
+      const defs = this.getOrCreateDefs();
+      let resultEl;
+
+      if(op === 'unite'){
+        // Just group them
+        const g = document.createElementNS(NS, 'g');
+        g.classList.add('vel');
+        g.id = 'el-' + (this._idCounter++);
+        g.setAttribute('fill', base.getAttribute('fill') || '#000');
+        others.forEach(o => { /* keep their own fills but merge into g */ });
+        [base, ...others].forEach(el => {
+          el.classList.remove('selected');
+          g.appendChild(el);
+        });
+        this.layer.appendChild(g);
+        this.deselect();
+        this.selectSingle(g);
+      }else if(op === 'intersect' || op === 'subtract' || op === 'exclude'){
+        // Use clip-path for intersect, mask for subtract/exclude
+        // For simplicity, use clip-path with the base element as the visible shape
+        const clipId = 'clip-' + uidV;
+        const clip = document.createElementNS(NS, 'clipPath');
+        clip.id = clipId;
+        // Use the other elements as the clip
+        others.forEach(o => {
+          const c = o.cloneNode(true);
+          c.removeAttribute('id');
+          c.removeAttribute('class');
+          clip.appendChild(c);
+        });
+        defs.appendChild(clip);
+
+        // Apply clip to base
+        const clipped = base.cloneNode(true);
+        clipped.id = 'el-' + (this._idCounter++);
+        clipped.setAttribute('clip-path', `url(#${clipId})`);
+        if(op === 'subtract'){
+          // Inverted: hide base where others overlap → use mask
+          clipped.removeAttribute('clip-path');
+          const maskId = 'mask-' + uidV;
+          const mask = document.createElementNS(NS, 'mask');
+          mask.id = maskId;
+          const white = document.createElementNS(NS, 'rect');
+          white.setAttribute('x', 0); white.setAttribute('y', 0);
+          white.setAttribute('width', this.artW); white.setAttribute('height', this.artH);
+          white.setAttribute('fill', 'white');
+          mask.appendChild(white);
+          others.forEach(o => {
+            const c = o.cloneNode(true);
+            c.removeAttribute('id');
+            c.removeAttribute('class');
+            c.setAttribute('fill', 'black');
+            mask.appendChild(c);
+          });
+          defs.appendChild(mask);
+          clipped.setAttribute('mask', `url(#${maskId})`);
+        }
+        if(op === 'exclude'){
+          // Same as subtract but inverse: show only where they DON'T overlap
+          // Use the same mask logic
+          clipped.removeAttribute('clip-path');
+          const maskId = 'mask-' + uidV;
+          const mask = document.createElementNS(NS, 'mask');
+          mask.id = maskId;
+          const white = document.createElementNS(NS, 'rect');
+          white.setAttribute('x', 0); white.setAttribute('y', 0);
+          white.setAttribute('width', this.artW); white.setAttribute('height', this.artH);
+          white.setAttribute('fill', 'white');
+          mask.appendChild(white);
+          others.forEach(o => {
+            const c = o.cloneNode(true);
+            c.removeAttribute('id');
+            c.removeAttribute('class');
+            c.setAttribute('fill', 'black');
+            mask.appendChild(c);
+          });
+          defs.appendChild(mask);
+          clipped.setAttribute('mask', `url(#${maskId})`);
+        }
+        // Remove originals
+        [base, ...others].forEach(el => el.remove());
+        this.layer.appendChild(clipped);
+        this.deselect();
+        this.selectSingle(clipped);
+      }
+      this.saveState('Boolean ' + op);
+      const msgKey = {unite:'inkling.toast_bool_unite', intersect:'inkling.toast_bool_intersect', subtract:'inkling.toast_bool_subtract', exclude:'inkling.toast_bool_exclude'}[op];
+      toast(I.t(msgKey), 'success', 1200);
+    }
+
+    getOrCreateDefs(){
+      let defs = this.svg.querySelector('defs');
+      if(!defs){
+        defs = document.createElementNS(NS, 'defs');
+        this.svg.insertBefore(defs, this.svg.firstChild);
+      }
+      return defs;
+    }
+
+    /* ---- Layers panel ---- */
+    renderLayers(){
+      const list = $('#layers-list');
+      list.innerHTML = '';
+      // Show top-level elements (children of layer)
+      const children = Array.from(this.layer.children).reverse();
+      children.forEach(node => {
+        if(!node.id) return;
+        const row = el('div', {
+          class:'layer-row' + (this.selectedIds.has(node.id) ? ' active' : ''),
+          onclick: () => { this.deselect(); this.selectSingle(node); }
+        },
+          el('span', {class:'vis', onclick:e => { e.stopPropagation(); this.toggleVisible(node); }}, el('i', {class:'fa-solid ' + (this._hiddenIds.has(node.id) ? 'fa-eye-slash' : 'fa-eye')})),
+          el('span', {class:'name'}, node.tagName.toLowerCase() + ' #' + node.id)
+        );
+        list.appendChild(row);
+      });
+    }
+
+    toggleVisible(node){
+      if(this._hiddenIds.has(node.id)){
+        this._hiddenIds.delete(node.id);
+        node.style.display = '';
+      }else{
+        this._hiddenIds.add(node.id);
+        node.style.display = 'none';
+      }
+      this.renderLayers();
+    }
+
+    /* ---- Assets ---- */
+    initAssets(){
+      // Shape library
+      const grid = $('#shape-grid');
+      const shapes = [
+        {id:'arrow', icon:'fa-arrow-right-long'},
+        {id:'darrow', icon:'fa-arrows-left-right'},
+        {id:'bubble', icon:'fa-comment'},
+        {id:'heart', icon:'fa-heart'},
+        {id:'chevron', icon:'fa-chevron-up'},
+        {id:'cross', icon:'fa-plus'},
+        {id:'bolt', icon:'fa-bolt'},
+        {id:'badge', icon:'fa-certificate'},
+      ];
+      grid.innerHTML = '';
+      shapes.forEach(s => {
+        const cell = el('div', {class:'shape-cell', title:s.id, onclick:() => this.insertShape(s.id)},
+          el('i', {class:'fa-solid ' + s.icon})
+        );
+        grid.appendChild(cell);
+      });
+
+      // Palettes
+      const pal = $('#palettes');
+      pal.innerHTML = '';
+      Object.keys(this.palettes).forEach(name => {
+        const row = el('div', {});
+        row.appendChild(el('div', {style:{fontFamily:'var(--font-ui)', fontSize:'9px', textTransform:'uppercase', marginTop:'6px', marginBottom:'4px', color:'var(--c-muted)'}}, name));
+        const swatches = el('div', {class:'palette-row'});
+        this.palettes[name].forEach(c => {
+          swatches.appendChild(el('div', {class:'csw', style:{background:c}, title:c, onclick:() => this.applyQuickColor(c)}));
+        });
+        row.appendChild(swatches);
+        pal.appendChild(row);
+      });
+      // Quick colors
+      const qcRow = el('div', {});
+      qcRow.appendChild(el('div', {style:{fontFamily:'var(--font-ui)', fontSize:'9px', textTransform:'uppercase', marginTop:'6px', marginBottom:'4px', color:'var(--c-muted)'}}, 'Quick'));
+      const qc = el('div', {class:'palette-row'});
+      this.quickColors.forEach(c => {
+        qc.appendChild(el('div', {class:'csw', style:{background:c}, title:c, onclick:() => this.applyQuickColor(c)}));
+      });
+      qcRow.appendChild(qc);
+      pal.appendChild(qcRow);
+    }
+
+    applyQuickColor(c){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.setAttribute('fill', c);
+      });
+      $('#prop-fill').value = c;
+      this.saveState('Apply color');
+    }
+
+    insertShape(name){
+      const cx = this.artW / 2, cy = this.artH / 2;
+      const p = document.createElementNS(NS, 'path');
+      p.classList.add('vel');
+      p.id = 'el-' + (this._idCounter++);
+      p.setAttribute('fill', '#FF90E8');
+      p.setAttribute('stroke', '#000');
+      p.setAttribute('stroke-width', '2');
+      let d = '';
+      if(name === 'arrow') d = this.shapePath('arrow', {x:cx-50,y:cy}, {x:cx+50,y:cy});
+      else if(name === 'darrow') d = this.shapePath('arrow', {x:cx-50,y:cy}, {x:cx+50,y:cy}) + ' ' + this.shapePath('arrow', {x:cx+50,y:cy}, {x:cx-50,y:cy});
+      else if(name === 'heart') d = `M${cx},${cy+30} C${cx-50},${cy-10} ${cx-50},${cy-50} ${cx},${cy-20} C${cx+50},${cy-50} ${cx+50},${cy-10} ${cx},${cy+30} Z`;
+      else if(name === 'chevron') d = `M${cx-30},${cy-20} L${cx},${cy+10} L${cx+30},${cy-20}`;
+      else if(name === 'cross') d = `M${cx-30},${cy-10} H${cx-10} V${cy-30} H${cx+10} V${cy-10} H${cx+30} V${cy+10} H${cx+10} V${cy+30} H${cx-10} V${cy+10} H${cx-30} Z`;
+      else if(name === 'bolt') d = `M${cx-10},${cy-30} L${cx+10},${cy-30} L${cx},${cy} L${cx+15},${cy} L${cx-5},${cy+30} L${cx+5},${cy+5} L${cx-10},${cy+5} Z`;
+      else if(name === 'badge') d = this.shapePath('star', {x:cx-40,y:cy-40}, {x:cx+40,y:cy+40});
+      else if(name === 'bubble') d = `M${cx-50},${cy-30} H${cx+50} V${cy+20} H${cx+10} L${cx},${cy+40} L${cx-10},${cy+20} H${cx-50} Z`;
+      p.setAttribute('d', d);
+      this.layer.appendChild(p);
+      this.deselect();
+      this.selectSingle(p);
+      this.saveState('Insert ' + name);
+    }
+
+    /* ---- History ---- */
+    saveState(label){
+      this._histStack = this._histStack || [];
+      this._histFuture = this._histFuture || [];
+      this._histStack.push({svg: this.layer.innerHTML, label});
+      if(this._histStack.length > 80) this._histStack.shift();
+      this._histFuture = [];
+    }
+    undo(){
+      if(!this._histStack || this._histStack.length < 2){
+        toast('Nothing to undo', 'warn', 1000);
+        return;
+      }
+      const cur = this._histStack.pop();
+      this._histFuture.push(cur);
+      const prev = this._histStack[this._histStack.length - 1];
+      this.deselect();
+      this.layer.innerHTML = prev.svg;
+      this.saveState; // no-op
+      toast('Undo', 'info', 800);
+    }
+    redo(){
+      if(!this._histFuture || this._histFuture.length === 0){
+        toast('Nothing to redo', 'warn', 1000);
+        return;
+      }
+      const next = this._histFuture.pop();
+      this._histStack.push(next);
+      this.deselect();
+      this.layer.innerHTML = next.svg;
+      toast('Redo', 'info', 800);
+    }
+
+    /* ---- Import ---- */
+    handleFile(file){
+      if(!file) return;
+      const reader = new FileReader();
+      if(file.type === 'image/svg+xml' || file.name.endsWith('.svg')){
+        reader.onload = e => {
+          // Parse SVG and import its content
+          const tmp = new DOMParser().parseFromString(e.target.result, 'image/svg+xml');
+          const svg = tmp.documentElement;
+          // Import children
+          Array.from(svg.children).forEach(c => {
+            if(c.tagName.toLowerCase() === 'defs'){
+              this.getOrCreateDefs().innerHTML += c.innerHTML;
+            }else{
+              const imported = document.importNode(c, true);
+              if(!imported.id) imported.id = 'el-' + (this._idCounter++);
+              imported.classList.add('vel');
+              this.layer.appendChild(imported);
+            }
+          });
+          this.saveState('Import SVG');
+          this.renderLayers();
+          toast('Imported ' + file.name, 'success');
+        };
+        reader.readAsText(file);
+      }else{
+        // Raster image
+        reader.onload = e => {
+          const img = document.createElementNS(NS, 'image');
+          img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', e.target.result);
+          img.setAttribute('href', e.target.result);
+          img.setAttribute('x', 50);
+          img.setAttribute('y', 50);
+          img.setAttribute('width', 200);
+          img.setAttribute('height', 200);
+          img.classList.add('vel');
+          img.id = 'el-' + (this._idCounter++);
+          this.layer.appendChild(img);
+          this.deselect();
+          this.selectSingle(img);
+          this.saveState('Import image');
+          toast('Imported ' + file.name, 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    /* ---- Export ---- */
+    openExport(){ openModal('modal-export'); }
+    exportSVG(){
+      const name = $('#exp-name').value || 'artwork';
+      const clean = $('#exp-clean').checked;
+      const embed = $('#exp-embed').checked;
+      // Clone the SVG
+      const clone = this.svg.cloneNode(true);
+      // Remove selection classes
+      if(clean){
+        clone.querySelectorAll('.selected').forEach(e => e.classList.remove('selected'));
+        clone.querySelectorAll('.vel').forEach(e => e.classList.remove('vel'));
+      }
+      // Embed fonts as <style>
+      if(embed){
+        const style = document.createElementNS(NS, 'style');
+        style.textContent = '@import url("https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Mono:wght@400;700&display=swap");';
+        clone.insertBefore(style, clone.firstChild);
+      }
+      const xml = '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(clone);
+      const blob = new Blob([xml], {type:'image/svg+xml'});
+      FloatExport.saveBlob(blob, FloatExport.sanitizeFilename(name, 'svg'));
+      toast(I.t('common.exported'), 'success');
+      closeModal('modal-export');
+    }
+    exportPNG(){
+      const name = $('#exp-name').value || 'artwork';
+      const clone = this.svg.cloneNode(true);
+      clone.querySelectorAll('.selected').forEach(e => e.classList.remove('selected'));
+      clone.querySelectorAll('.vel').forEach(e => e.classList.remove('vel'));
+      const xml = new XMLSerializer().serializeToString(clone);
+      const blob = new Blob([xml], {type:'image/svg+xml'});
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = this.artW * 2; c.height = this.artH * 2;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = $('#art-bg').value || '#FFFFFF';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height);
+        c.toBlob(b => {
+          FloatExport.saveBlob(b, FloatExport.sanitizeFilename(name, 'png'));
+          URL.revokeObjectURL(url);
+          toast(I.t('common.exported'), 'success');
+          closeModal('modal-export');
+        }, 'image/png');
+      };
+      img.src = url;
+    }
+    exportPDF(){
+      const name = $('#exp-name').value || 'artwork';
+      const clone = this.svg.cloneNode(true);
+      clone.querySelectorAll('.selected').forEach(e => e.classList.remove('selected'));
+      clone.querySelectorAll('.vel').forEach(e => e.classList.remove('vel'));
+      FloatExport.svgToPDF(clone, name, {background:$('#art-bg').value || '#FFFFFF', orientation:'landscape'})
+        .then(() => { toast(I.t('common.exported'), 'success'); closeModal('modal-export'); })
+        .catch(err => { console.error(err); toast(I.t('common.failed') + ': ' + err.message, 'danger'); });
+    }
+
+    /* ---- Autosave ---- */
+    initAutosave(){
+      setInterval(() => {
+        try{
+          const data = this.layer.innerHTML;
+          if(data && data.length < 4_000_000){
+            localStorage.setItem('inkling_autosave', data);
+            localStorage.setItem('inkling_autosave_meta', JSON.stringify({w:this.artW, h:this.artH, time:Date.now()}));
+          }
+        }catch(e){}
+      }, 30000);
+      window.addEventListener('beforeunload', () => {
+        try{
+          localStorage.setItem('inkling_autosave', this.layer.innerHTML);
+        }catch(e){}
+      });
+    }
+
+    /* ---- UI bindings ---- */
+    bindUI(){
+      // Header buttons
+      $('#btn-import').addEventListener('click', () => $('#file-input').click());
+      $('#file-input').addEventListener('change', e => {
+        if(e.target.files[0]) this.handleFile(e.target.files[0]);
+        e.target.value = '';
+      });
+      $('#btn-export').addEventListener('click', () => this.openExport());
+      $('#btn-export-png').addEventListener('click', () => this.exportPNG());
+      $('#btn-undo').addEventListener('click', () => this.undo());
+      $('#btn-redo').addEventListener('click', () => this.redo());
+
+      // Presets
+      $$('.preset-btn').forEach(b => {
+        b.addEventListener('click', () => this.resizeArtboard(parseInt(b.dataset.w,10), parseInt(b.dataset.h,10)));
+      });
+
+      // Tools
+      $$('.tool-btn').forEach(b => b.addEventListener('click', () => this.setTool(b.dataset.tool)));
+
+      // Panel tabs
+      $$('.panel-tab').forEach(t => {
+        t.addEventListener('click', () => {
+          $$('.panel-tab').forEach(x => x.classList.remove('active'));
+          $$('.pane').forEach(x => x.classList.remove('active'));
+          t.classList.add('active');
+          $('#pane-' + t.dataset.tab).classList.add('active');
+        });
+      });
+
+      // Properties inputs
+      $('#prop-x').addEventListener('input', e => this.applyTransformFromProps());
+      $('#prop-y').addEventListener('input', e => this.applyTransformFromProps());
+      $('#prop-w').addEventListener('input', e => this.applySizeFromProps());
+      $('#prop-h').addEventListener('input', e => this.applySizeFromProps());
+      $('#prop-rot').addEventListener('input', e => this.applyTransformFromProps());
+      $('#prop-fill').addEventListener('input', e => this.applyFill(e.target.value));
+      $('#prop-stroke').addEventListener('input', e => this.applyStroke(e.target.value));
+      $('#prop-stroke-w').addEventListener('input', e => this.applyStrokeW(e.target.value));
+      $('#prop-opacity').addEventListener('input', e => this.applyOpacity(e.target.value));
+      $('#prop-font').addEventListener('change', e => this.applyFont(e.target.value, null));
+      $('#prop-fontsize').addEventListener('input', e => this.applyFont(null, e.target.value));
+
+      // Action buttons
+      $('#btn-topath').addEventListener('click', () => this.convertToPath());
+      $('#btn-group').addEventListener('click', () => this.group());
+      $('#btn-ungroup').addEventListener('click', () => this.ungroup());
+      $('#btn-flatten').addEventListener('click', () => this.flattenGroup());
+      $('#btn-front').addEventListener('click', () => this.bringToFront());
+      $('#btn-back').addEventListener('click', () => this.sendToBack());
+      $('#btn-fwd').addEventListener('click', () => this.bringForward());
+      $('#btn-bwd').addEventListener('click', () => this.sendBackward());
+      $('#btn-dup').addEventListener('click', () => this.duplicateSelection());
+      $('#btn-del').addEventListener('click', () => this.deleteSelection());
+
+      // Layers
+      $('#btn-layer-add').addEventListener('click', () => {
+        const g = document.createElementNS(NS, 'g');
+        g.classList.add('vel');
+        g.id = 'el-' + (this._idCounter++);
+        g.setAttribute('fill', '#FF90E8');
+        this.layer.appendChild(g);
+        this.deselect();
+        this.selectSingle(g);
+        this.renderLayers();
+      });
+      $('#btn-layer-dup').addEventListener('click', () => this.duplicateSelection());
+      $('#btn-layer-del').addEventListener('click', () => this.deleteSelection());
+      $('#btn-layer-up').addEventListener('click', () => this.bringForward());
+      $('#btn-layer-down').addEventListener('click', () => this.sendBackward());
+
+      // Artboard
+      $('#art-w').addEventListener('input', e => this.resizeArtboard(parseInt(e.target.value,10) || 900, this.artH));
+      $('#art-h').addEventListener('input', e => this.resizeArtboard(this.artW, parseInt(e.target.value,10) || 600));
+      $('#art-bg').addEventListener('input', e => this.artboard.style.background = e.target.value);
+
+      // View toggles
+      $('#chk-grid').addEventListener('change', e => { this.showGrid = e.target.checked; this.viewport.classList.toggle('show-grid', this.showGrid); });
+      $('#chk-rulers').addEventListener('change', e => this.showRulers = e.target.checked);
+      $('#chk-snap').addEventListener('change', e => this.snapEnabled = e.target.checked);
+      $('#chk-snap-obj').addEventListener('change', e => this.snapObjects = e.target.checked);
+      $('#grid-size').addEventListener('input', e => this.snapGrid = parseInt(e.target.value, 10) || 20);
+
+      // Export modal
+      $('#exp-svg').addEventListener('click', () => this.exportSVG());
+      $('#exp-png').addEventListener('click', () => this.exportPNG());
+      $('#exp-pdf').addEventListener('click', () => this.exportPDF());
+
+      // Panning on viewport (middle mouse or alt)
+      this.viewport.addEventListener('pointerdown', e => {
+        if(e.button === 1 || (e.altKey && this.tool !== 'pen')){
+          this.isPanning = true;
+          this.panStart = {x:e.clientX, y:e.clientY, scrollLeft:this.viewport.scrollLeft, scrollTop:this.viewport.scrollTop};
+          this.viewport.style.cursor = 'grabbing';
+          e.preventDefault();
+        }
+      });
+      window.addEventListener('pointermove', e => {
+        if(this.isPanning){
+          // Use translate on container
+          const dx = e.clientX - this.panStart.x;
+          const dy = e.clientY - this.panStart.y;
+          this.container.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(${this.zoom})`;
+        }
+      });
+      window.addEventListener('pointerup', () => {
+        if(this.isPanning){
+          this.isPanning = false;
+          this.viewport.style.cursor = '';
+        }
+      });
+
+      // Window resize
+      window.addEventListener('resize', () => this.centerView());
+    }
+
+    applyTransformFromProps(){
+      if(this.selectedIds.size !== 1) return;
+      const el = document.getElementById(Array.from(this.selectedIds)[0]);
+      if(!el) return;
+      const x = parseFloat($('#prop-x').value) || 0;
+      const y = parseFloat($('#prop-y').value) || 0;
+      const rot = parseFloat($('#prop-rot').value) || 0;
+      try{
+        const bb = el.getBBox();
+        const cx = bb.x + bb.width/2, cy = bb.y + bb.height/2;
+        if(rot){
+          el.setAttribute('transform', `translate(${x - bb.x}, ${y - bb.y}) rotate(${rot} ${cx} ${cy})`);
+        }else{
+          el.setAttribute('transform', `translate(${x - bb.x}, ${y - bb.y})`);
+        }
+      }catch(e){}
+    }
+    applySizeFromProps(){
+      if(this.selectedIds.size !== 1) return;
+      const el = document.getElementById(Array.from(this.selectedIds)[0]);
+      if(!el) return;
+      const w = parseFloat($('#prop-w').value) || 1;
+      const h = parseFloat($('#prop-h').value) || 1;
+      const tag = el.tagName.toLowerCase();
+      try{
+        const bb = el.getBBox();
+        const sx = w / bb.width, sy = h / bb.height;
+        el.setAttribute('transform', `translate(${bb.x}, ${bb.y}) scale(${sx}, ${sy}) translate(${-bb.x}, ${-bb.y})`);
+      }catch(e){}
+    }
+    applyFill(c){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.setAttribute('fill', c);
+      });
+    }
+    applyStroke(c){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.setAttribute('stroke', c);
+      });
+    }
+    applyStrokeW(w){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.setAttribute('stroke-width', w);
+      });
+    }
+    applyOpacity(v){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.setAttribute('opacity', v/100);
+      });
+    }
+    applyFont(font, size){
+      this.selectedIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(el && el.tagName.toLowerCase() === 'text'){
+          if(font) el.setAttribute('font-family', font);
+          if(size) el.setAttribute('font-size', size);
+        }
+      });
+    }
+  }
+
+  window.App = new InklingApp();
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => App.init());
+  }else{
+    App.init();
+  }
+})();
+</script>
+</body>
+</html>
