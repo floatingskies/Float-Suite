@@ -13,6 +13,13 @@ on:
 permissions:
   contents: write
 
+# Cancel in-progress runs of the same workflow when a new commit is pushed.
+# This prevents macOS jobs (which have long queue times on free tier) from
+# piling up when you push several commits in quick succession.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_VERSION: '20'
   ELECTRON_BUILDER_VERSION: '24.13.3'
@@ -24,6 +31,7 @@ jobs:
   build-linux:
     name: Linux (deb · rpm · pacman · AppImage)
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -80,9 +88,17 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────
   # macOS: .dmg (x64 + arm64)
   # ─────────────────────────────────────────────────────────────────────
+  # NOTE: macOS runners on free GitHub plans have limited availability
+  # and 10x billing multiplier. If this job is stuck on "picking a runner"
+  # for a long time, it's likely queued behind other free-tier users.
+  # Upgrade to a paid plan for faster macOS CI, or trigger builds manually
+  # via workflow_dispatch only when needed.
+  # We use macos-15 (Apple Silicon / arm64) — it cross-compiles x64 just
+  # fine. macos-13 (Intel) is being phased out by GitHub.
   build-macos:
     name: macOS (dmg)
-    runs-on: macos-13
+    runs-on: macos-15
+    timeout-minutes: 45
     # Map secrets → job-level env so we can branch on them in step `if:`.
     # The `secrets` context is NOT directly allowed in step `if:` conditions,
     # but `env.*` is. We use a boolean string ('true' / 'false').
@@ -149,6 +165,7 @@ jobs:
   build-windows:
     name: Windows (exe · portable)
     runs-on: windows-2022
+    timeout-minutes: 45
     # Map secrets → job-level env so we can branch on them in step `if:`.
     # The `secrets` context is NOT directly allowed in step `if:` conditions,
     # but `env.*` is. We use a boolean string ('true' / 'false').
@@ -215,6 +232,7 @@ jobs:
     name: Publish Release
     needs: [build-linux, build-macos, build-windows]
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Download all artifacts
