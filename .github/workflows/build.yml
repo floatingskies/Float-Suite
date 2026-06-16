@@ -46,11 +46,17 @@ jobs:
           sudo apt-get install -y dpkg rpm libarchive-tools
 
       - name: Build Linux packages
-        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --linux deb rpm pacman AppImage
+        # `--publish never` is mandatory: without it electron-builder
+        # auto-detects a GitHub publisher from the `repository` field in
+        # package.json (or the GH_TOKEN env var) and tries to upload the
+        # artifacts to GitHub Releases at the end of the build. That fails
+        # with a 404 because the placeholder repo doesn't exist. We publish
+        # releases separately in the `release` job via softprops/action-gh-release.
+        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --linux deb rpm pacman AppImage --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # PUPPETEER_SKIP_DOWNLOAD is set because electron-builder's print-to-PDF
-          # helper isn't needed; this avoids a noisy download step.
+          # GH_TOKEN is intentionally NOT set here — passing it would
+          # re-enable auto-publish detection. We only need it in the
+          # release job.
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
       - name: Verify artifacts
@@ -102,20 +108,19 @@ jobs:
         # at all (not even to an empty string). electron-builder treats any
         # CSC_LINK env var as "please sign", and tries to resolve it as a
         # file path → "WIN_CSC_LINK is not correct, cannot resolve: <cwd>".
-        # electron-builder auto-skips signing when no identity is available.
+        # `--publish never` prevents electron-builder from trying to upload
+        # to GitHub Releases during the build step.
         run: |
           unset CSC_LINK WIN_CSC_LINK CSC_KEY_PASSWORD 2>/dev/null || true
           unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID 2>/dev/null || true
-          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg
+          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
       - name: Build macOS packages (signed + notarized)
         if: ${{ env.HAS_MAC_CERT == 'true' }}
-        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg
+        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUPPETEER_SKIP_DOWNLOAD: 'true'
           CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
@@ -170,18 +175,18 @@ jobs:
         # CSC_LINK env var as "please sign", and tries to resolve it as a
         # file path → "WIN_CSC_LINK is not correct, cannot resolve: <cwd>".
         # Unsetting the vars + not declaring them in `env:` is enough.
+        # `--publish never` prevents the builder from trying to upload to
+        # GitHub Releases during the build step.
         run: |
           unset CSC_LINK WIN_CSC_LINK CSC_KEY_PASSWORD 2>/dev/null || true
-          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable
+          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
       - name: Build Windows packages (signed)
         if: ${{ env.HAS_WIN_CERT == 'true' }}
-        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable
+        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable --publish never
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUPPETEER_SKIP_DOWNLOAD: 'true'
           CSC_LINK: ${{ secrets.WIN_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
