@@ -225,12 +225,24 @@ body{display:flex;flex-direction:column}
     <div class="tool-group">
       <div class="tool-group-label">Brush</div>
       <div class="brush-row">
+        <select id="brush-type" style="font-family:var(--font-ui);font-size:9px;padding:3px;background:var(--c-surface);border:1px solid var(--c-border);text-transform:uppercase;font-weight:700">
+          <option value="round">Round (soft)</option>
+          <option value="hard">Round (hard)</option>
+          <option value="calligraphy">Calligraphy</option>
+          <option value="airbrush">Airbrush</option>
+          <option value="marker">Marker</option>
+          <option value="watercolor">Watercolor</option>
+          <option value="pixel">Pixel</option>
+          <option value="crayon">Crayon</option>
+        </select>
         <label data-i18n="common.brush_size">Brush Size</label>
         <input type="range" id="brush-size" min="1" max="200" value="10">
         <label data-i18n="common.brush_hardness">Hardness</label>
         <input type="range" id="brush-hardness" min="0" max="100" value="80">
         <label data-i18n="common.brush_opacity">Opacity</label>
         <input type="range" id="brush-opacity" min="1" max="100" value="100">
+        <label>Flow</label>
+        <input type="range" id="brush-flow" min="1" max="100" value="100">
         <div class="brush-preview" id="brush-preview"></div>
       </div>
     </div>
@@ -471,6 +483,8 @@ body{display:flex;flex-direction:column}
     brushHardness: 80,
     brushOpacity: 100,
     brushSpacing: 0.25,
+    brushType: 'round',
+    brushFlow: 100,
 
     zoom: 1,
     panX: 0, panY: 0,
@@ -951,34 +965,136 @@ body{display:flex;flex-direction:column}
     },
 
     /* ---- Drawing primitives ---- */
-    drawBrushDot(ctx, x, y){
+    drawBrushDot(ctx, x, y, opts){
+      opts = opts || {};
+      const angle = opts.angle != null ? opts.angle : 0;
       const r = Math.max(0.5, this.brushSize / 2);
       const hardness = this.brushHardness / 100;
-      const op = (this.brushOpacity / 100) * this.alpha;
+      const op = (this.brushOpacity / 100) * this.alpha * (this.brushFlow / 100);
+      const type = this.brushType || 'round';
+      const isEraser = this.tool === 'eraser';
+      const color = isEraser ? '#000' : this.primaryColor;
+
       ctx.save();
       ctx.globalAlpha = op;
-      if(this.tool === 'eraser'){
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = '#000';
-      }else{
-        ctx.fillStyle = this.primaryColor;
-      }
-      if(hardness >= 0.95){
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
-      }else{
-        // Soft brush via radial gradient
-        const grad = ctx.createRadialGradient(x, y, r * hardness, x, y, r);
-        const c = this.tool === 'eraser' ? '#000' : this.primaryColor;
-        grad.addColorStop(0, c);
-        grad.addColorStop(1, c + '00');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
+      if(isEraser) ctx.globalCompositeOperation = 'destination-out';
+
+      switch(type){
+        case 'hard':
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+
+        case 'calligraphy':
+          // Angled flat brush — looks like a calligraphy pen.
+          ctx.translate(x, y);
+          ctx.rotate(angle - Math.PI / 4);
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r, Math.max(0.5, r * 0.3), 0, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+
+        case 'airbrush':
+          // Spray of small dots — density proportional to brush size.
+          ctx.fillStyle = color;
+          const density = Math.max(5, Math.floor(r * r * 0.3));
+          for(let i = 0; i < density; i++){
+            const a = Math.random() * Math.PI * 2;
+            const dist = Math.random() * r;
+            const px = x + Math.cos(a) * dist;
+            const py = y + Math.sin(a) * dist;
+            ctx.beginPath();
+            ctx.arc(px, py, 0.5 + Math.random() * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+
+        case 'marker':
+          // Flat-top marker — high coverage, slight transparency.
+          ctx.globalAlpha = Math.min(1, op * 0.7);
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+
+        case 'watercolor':
+          // Soft, low-opacity, with irregular edge — builds up gradually.
+          ctx.globalAlpha = Math.min(1, op * 0.25);
+          const wcGrad = ctx.createRadialGradient(x, y, 0, x, y, r * 1.2);
+          wcGrad.addColorStop(0, color);
+          wcGrad.addColorStop(0.6, color);
+          wcGrad.addColorStop(1, this.hexToRgba(color, 0));
+          ctx.fillStyle = wcGrad;
+          ctx.beginPath();
+          // Irregular edge for organic feel
+          const segs = 12;
+          for(let i = 0; i <= segs; i++){
+            const a = (i / segs) * Math.PI * 2;
+            const jitter = 0.85 + Math.random() * 0.3;
+            const px = x + Math.cos(a) * r * jitter;
+            const py = y + Math.sin(a) * r * jitter;
+            if(i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
+          ctx.closePath();
+          ctx.fill();
+          break;
+
+        case 'pixel':
+          // Hard square — no anti-aliasing, aligned to grid.
+          ctx.imageSmoothingEnabled = false;
+          ctx.fillStyle = color;
+          const px = Math.floor(x - r);
+          const py = Math.floor(y - r);
+          ctx.fillRect(px, py, Math.ceil(r * 2), Math.ceil(r * 2));
+          break;
+
+        case 'crayon':
+          // Textured dots — like a crayon rubbing.
+          ctx.fillStyle = color;
+          ctx.globalAlpha = Math.min(1, op * 0.6);
+          const crayonDots = Math.max(8, Math.floor(r * r * 0.2));
+          for(let i = 0; i < crayonDots; i++){
+            const a = Math.random() * Math.PI * 2;
+            const dist = Math.random() * r * 0.9;
+            const px = x + Math.cos(a) * dist;
+            const py = y + Math.sin(a) * dist;
+            const sz = 0.8 + Math.random() * 1.5;
+            ctx.fillRect(px - sz/2, py - sz/2, sz, sz);
+          }
+          break;
+
+        case 'round':
+        default:
+          // Soft round brush — the classic. Radial gradient from solid to transparent.
+          if(hardness >= 0.95){
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+          }else{
+            const grad = ctx.createRadialGradient(x, y, r * hardness, x, y, r);
+            grad.addColorStop(0, color);
+            grad.addColorStop(1, this.hexToRgba(color, 0));
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
       }
       ctx.restore();
+    },
+
+    /* Convert #RRGGBB to rgba() string with given alpha. */
+    hexToRgba(hex, a){
+      const m = hex.match(/^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+      if(!m) return hex;
+      return `rgba(${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)},${a})`;
     },
 
     drawLine(ctx, x1, y1, x2, y2){
@@ -986,9 +1102,10 @@ body{display:flex;flex-direction:column}
       const dist = Math.sqrt(dx*dx + dy*dy);
       const step = Math.max(1, this.brushSize * this.brushSpacing);
       const n = Math.ceil(dist / step);
+      const angle = Math.atan2(dy, dx);
       for(let i = 0; i <= n; i++){
         const t = n === 0 ? 0 : i / n;
-        this.drawBrushDot(ctx, x1 + dx*t, y1 + dy*t);
+        this.drawBrushDot(ctx, x1 + dx*t, y1 + dy*t, {angle});
       }
     },
 
@@ -1055,6 +1172,8 @@ body{display:flex;flex-direction:column}
 
       // Cursor indicator
       vp.addEventListener('pointermove', e => this.updateCursorInfo(e));
+      vp.addEventListener('pointerleave', () => { if(this.ui.cursor) this.ui.cursor.style.display = 'none'; });
+      vp.addEventListener('pointerenter', e => this.updateCursorInfo(e));
     },
 
     onPointerDown(e){
@@ -1838,10 +1957,18 @@ body{display:flex;flex-direction:column}
     centerCanvas(){
       const vp = this.ui.viewport;
       const vw = vp.clientWidth, vh = vp.clientHeight;
-      const z = Math.min(vw / this.width, vh / this.height) * 0.9;
+      // Fit the canvas to ~85% of the viewport so there's a comfortable
+      // margin around it.
+      const z = Math.min(vw / this.width, vh / this.height) * 0.85;
       this.zoom = z;
-      this.panX = (vw - this.width * z) / 2;
-      this.panY = (vh - this.height * z) / 2;
+      // panX / panY are delta offsets from the centred position.
+      // The actual transform (set in updateTransform) is
+      //   translate(calc(-50% + panX), calc(-50% + panY)) scale(zoom)
+      // because #canvas-wrapper has `left:50%; top:50%` in CSS, so a plain
+      // `translate(panX, panY)` would push the canvas to the bottom-right
+      // corner of the viewport plus the pan offset.
+      this.panX = 0;
+      this.panY = 0;
       this.updateTransform();
     },
     setZoom(z){
@@ -1850,7 +1977,12 @@ body{display:flex;flex-direction:column}
       this.updateMenubarStatus();
     },
     updateTransform(){
-      this.ui.wrapper.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoom})`;
+      // Combine the centring offset (-50%, -50%) with the pan delta and the
+      // zoom scale. Order matters: translate first, then scale (so the
+      // scale is applied around the centre of the wrapper, which is
+      // already at the viewport's centre thanks to transform-origin).
+      this.ui.wrapper.style.transform =
+        `translate(calc(-50% + ${this.panX}px), calc(-50% + ${this.panY}px)) scale(${this.zoom})`;
       this.ui.wrapper.style.width = this.width + 'px';
       this.ui.wrapper.style.height = this.height + 'px';
     },
@@ -2161,12 +2293,24 @@ body{display:flex;flex-direction:column}
       const p = $('#brush-preview');
       if(!p) return;
       const c = document.createElement('canvas');
-      c.width = p.clientWidth || 100; c.height = 30;
+      c.width = p.clientWidth || 100; c.height = 40;
       const ctx = c.getContext('2d');
-      ctx.fillStyle = this.primaryColor;
-      ctx.beginPath();
-      ctx.arc(c.width/2, c.height/2, Math.min(14, this.brushSize/2), 0, Math.PI*2);
-      ctx.fill();
+      // White background so dark colors show up
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, c.width, c.height);
+      // Draw a stroke preview — three dots at different sizes
+      const cy = c.height / 2;
+      const sizes = [Math.min(16, this.brushSize / 2), Math.min(10, this.brushSize / 3), Math.min(6, this.brushSize / 4)];
+      const positions = [c.width * 0.25, c.width * 0.5, c.width * 0.75];
+      // Temporarily draw with the actual brush type by calling drawBrushDot
+      // on this preview context
+      const savedType = this.brushType;
+      const savedSize = this.brushSize;
+      for(let i = 0; i < 3; i++){
+        this.brushSize = sizes[i] * 2;
+        this.drawBrushDot(ctx, positions[i], cy, {angle: 0});
+      }
+      this.brushSize = savedSize;
       p.innerHTML = ''; p.appendChild(c);
     },
 
@@ -2210,8 +2354,10 @@ body{display:flex;flex-direction:column}
 
       // Brush controls
       $('#brush-size').addEventListener('input', e => { this.brushSize = parseInt(e.target.value,10); this.updateBrushPreview(); });
-      $('#brush-hardness').addEventListener('input', e => { this.brushHardness = parseInt(e.target.value,10); });
+      $('#brush-hardness').addEventListener('input', e => { this.brushHardness = parseInt(e.target.value,10); this.updateBrushPreview(); });
       $('#brush-opacity').addEventListener('input', e => { this.brushOpacity = parseInt(e.target.value,10); });
+      $('#brush-flow').addEventListener('input', e => { this.brushFlow = parseInt(e.target.value,10); });
+      $('#brush-type').addEventListener('change', e => { this.brushType = e.target.value; this.updateBrushPreview(); });
 
       // Color
       $('#color-primary').addEventListener('click', () => this.openColorPicker('primary'));
