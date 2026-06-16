@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Float Suite — portal favicon. Composite of the three app glyphs. -->
+  <defs>
+    <style>
+      .stroke{fill:none;stroke:#000;stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round}
+      .fill{stroke:#000;stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round}
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect x="0" y="0" width="64" height="64" fill="#f0ede6"/>
+  <rect x="2" y="2" width="60" height="60" fill="none" stroke="#000" stroke-width="3.5"/>
+  <!-- Three mini cards in a 2x2 grid (top-right is the "F" mark) -->
+  <!-- Paint (top-left, yellow) -->
+  <g transform="translate(6,6) scale(0.45)">
+    <rect x="0" y="0" width="44" height="44" fill="#FFDE59" stroke="#000" stroke-width="4"/>
+    <path d="M14 30 L26 18 L34 26 L22 38 Z" fill="#000"/>
+    <rect x="28" y="10" width="10" height="10" transform="rotate(45 33 15)" fill="#000"/>
+  </g>
+  <!-- Inkling (top-right, pink) -->
+  <g transform="translate(34,6) scale(0.45)">
+    <rect x="0" y="0" width="44" height="44" fill="#FF90E8" stroke="#000" stroke-width="4"/>
+    <!-- Mini squid silhouette -->
+    <path d="M22 8 C30 8 33 14 33 22 C33 26 31 28 31 30 C31 30 33 32 33 35 C33 38 30 38 28 36 C27 38 25 38 24 36 C23 38 21 38 20 36 C18 38 15 38 15 35 C15 32 17 30 17 30 C17 28 15 26 15 22 C15 14 14 8 22 8 Z" fill="#000"/>
+    <circle cx="19" cy="20" r="2" fill="#FF90E8"/>
+    <circle cx="25" cy="20" r="2" fill="#FF90E8"/>
+  </g>
+  <!-- Thesis (bottom-left, blue) -->
+  <g transform="translate(6,34) scale(0.45)">
+    <rect x="0" y="0" width="44" height="44" fill="#2D7DD2" stroke="#000" stroke-width="4"/>
+    <!-- Open book -->
+    <path d="M8 14 L22 16 L22 34 L8 32 Z" fill="#fff" stroke="#000" stroke-width="2.5"/>
+    <path d="M36 14 L22 16 L22 34 L36 32 Z" fill="#fff" stroke="#000" stroke-width="2.5"/>
+    <line x1="11" y1="20" x2="18" y2="21" stroke="#000" stroke-width="1.5"/>
+    <line x1="11" y1="24" x2="18" y2="25" stroke="#000" stroke-width="1.5"/>
+    <line x1="11" y1="28" x2="18" y2="29" stroke="#000" stroke-width="1.5"/>
+    <line x1="26" y1="21" x2="33" y2="20" stroke="#000" stroke-width="1.5"/>
+    <line x1="26" y1="25" x2="33" y2="24" stroke="#000" stroke-width="1.5"/>
+    <line x1="26" y1="29" x2="33" y2="28" stroke="#000" stroke-width="1.5"/>
+  </g>
+  <!-- "F" mark (bottom-right, dark) -->
+  <g transform="translate(34,34) scale(0.45)">
+    <rect x="0" y="0" width="44" height="44" fill="#000" stroke="#000" stroke-width="4"/>
+    <text x="22" y="34" font-family="Arial Black, sans-serif" font-size="32" font-weight="900" fill="#FFDE59" text-anchor="middle">F</text>
+  </g>
+</svg>

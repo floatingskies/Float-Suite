@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Thesis — open book on blue background, neo-brutalist. -->
+  <defs>
+    <style>
+      .stroke{fill:none;stroke:#000;stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round}
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect x="0" y="0" width="64" height="64" fill="#2D7DD2"/>
+  <rect x="2" y="2" width="60" height="60" fill="none" stroke="#000" stroke-width="3.5"/>
+
+  <!-- Hard shadow offset (neo-brutalist) -->
+  <g transform="translate(3,3)">
+    <!-- Left page -->
+    <path d="M 8 18 L 30 22 L 30 50 L 8 46 Z" fill="#000"/>
+    <!-- Right page -->
+    <path d="M 56 18 L 34 22 L 34 50 L 56 46 Z" fill="#000"/>
+    <!-- Spine -->
+    <path d="M 30 22 L 32 20 L 34 22 L 34 50 L 32 52 L 30 50 Z" fill="#000"/>
+  </g>
+
+  <!-- Foreground book (white pages, black outline) -->
+  <!-- Left page -->
+  <path d="M 8 18 L 30 22 L 30 50 L 8 46 Z" fill="#fff" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- Right page -->
+  <path d="M 56 18 L 34 22 L 34 50 L 56 46 Z" fill="#fff" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
+  <!-- Spine (center, slightly darker) -->
+  <path d="M 30 22 L 32 20 L 34 22 L 34 50 L 32 52 L 30 50 Z" fill="#f0ede6" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Text lines on left page -->
+  <line x1="13" y1="27" x2="25" y2="29" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="13" y1="32" x2="25" y2="34" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="13" y1="37" x2="25" y2="39" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="13" y1="42" x2="22" y2="43" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Text lines on right page -->
+  <line x1="39" y1="29" x2="51" y2="27" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="39" y1="34" x2="51" y2="32" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="39" y1="39" x2="51" y2="37" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line x1="39" y1="44" x2="48" y2="43" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Bookmark ribbon (yellow accent) -->
+  <path d="M 44 18 L 48 18 L 48 30 L 46 28 L 44 30 Z" fill="#FFDE59" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

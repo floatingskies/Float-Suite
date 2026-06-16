@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!--
+    Inkling — black Blooper-style squid on pink background.
+    Blooper (Mario enemy) silhouette: pointed mantle, two big eyes,
+    6 wavy tentacles. Neo-brutalist: thick black border, hard offset shadow.
+  -->
+  <defs>
+    <style>
+      .stroke{fill:none;stroke:#000;stroke-width:3.5;stroke-linejoin:round;stroke-linecap:round}
+    </style>
+  </defs>
+  <!-- Background -->
+  <rect x="0" y="0" width="64" height="64" fill="#FF90E8"/>
+  <rect x="2" y="2" width="60" height="60" fill="none" stroke="#000" stroke-width="3.5"/>
+
+  <!-- Hard shadow offset (neo-brutalist) -->
+  <g transform="translate(3,3)" fill="#000">
+    <!-- Squid body (mantle) — pointed top, rounded bottom -->
+    <path d="
+      M 32 8
+      C 44 8 48 18 48 28
+      C 48 34 46 38 46 40
+      L 46 42
+      C 46 42 50 44 50 48
+      C 50 52 47 53 44 50
+      C 43 52 41 52 40 50
+      C 39 53 36 53 35 51
+      C 34 53 31 53 30 51
+      C 29 53 26 53 25 50
+      C 22 53 18 52 18 48
+      C 18 44 22 42 22 42
+      L 22 40
+      C 22 38 20 34 20 28
+      C 20 18 20 8 32 8 Z
+    "/>
+  </g>
+
+  <!-- Foreground squid (same path, black) -->
+  <path d="
+    M 32 8
+    C 44 8 48 18 48 28
+    C 48 34 46 38 46 40
+    L 46 42
+    C 46 42 50 44 50 48
+    C 50 52 47 53 44 50
+    C 43 52 41 52 40 50
+    C 39 53 36 53 35 51
+    C 34 53 31 53 30 51
+    C 29 53 26 53 25 50
+    C 22 53 18 52 18 48
+    C 18 44 22 42 22 42
+    L 22 40
+    C 22 38 20 34 20 28
+    C 20 18 20 8 32 8 Z
+  " fill="#000"/>
+
+  <!-- Two big Blooper eyes (white with black pupils) -->
+  <circle cx="25" cy="24" r="5" fill="#fff" stroke="#000" stroke-width="2"/>
+  <circle cx="39" cy="24" r="5" fill="#fff" stroke="#000" stroke-width="2"/>
+  <circle cx="26" cy="25" r="2" fill="#000"/>
+  <circle cx="40" cy="25" r="2" fill="#000"/>
+
+  <!-- Highlight on mantle -->
+  <path d="M 28 14 C 32 12 36 12 38 14" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.5"/>
+</svg>

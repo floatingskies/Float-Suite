@@ -1,0 +1,120 @@
+{
+  "name": "float-suite",
+  "version": "5.1.0",
+  "description": "Offline-first creative & academic suite. Paint, vector, academic writing — all in your browser.",
+  "author": {
+    "name": "Arik Closs Novais",
+    "email": "float@example.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/your-org/float-suite",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/float-suite.git"
+  },
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist:linux": "electron-builder --linux deb rpm pacman AppImage",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:win": "electron-builder --win nsis portable",
+    "dist:all": "electron-builder -mlw",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "io.floatsuite.app",
+    "productName": "Float Suite",
+    "copyright": "Copyright © 2025 Arik Closs Novais",
+    "directories": {
+      "output": "electron/dist",
+      "buildResources": "electron/build"
+    },
+    "files": [
+      "index.html",
+      "paint.html",
+      "inkling.html",
+      "thesis.html",
+      "shared/**/*",
+      "favicons/**/*",
+      "electron/main.js",
+      "electron/preload.js"
+    ],
+    "linux": {
+      "icon": "favicons/float-512.png",
+      "category": "Office",
+      "target": [
+        { "target": "deb", "arch": ["x64", "arm64"] },
+        { "target": "rpm", "arch": ["x64", "arm64"] },
+        { "target": "pacman", "arch": ["x64"] },
+        { "target": "AppImage", "arch": ["x64", "arm64"] }
+      ],
+      "desktop": {
+        "Name": "Float Suite",
+        "Comment": "Offline-first creative & academic suite",
+        "Categories": "Office;Graphics;TextEditor;",
+        "Keywords": "paint;vector;thesis;academic;creative;offline;"
+      },
+      "maintainer": "Arik Closs Novais",
+      "vendor": "Float Suite",
+      "synopsis": "Offline-first creative & academic suite"
+    },
+    "deb": {
+      "depends": ["libnotify4", "libxtst6", "libnss3"],
+      "category": "Office"
+    },
+    "rpm": {
+      "depends": ["libnotify", "libXtst", "nss"],
+      "category": "Office"
+    },
+    "pacman": {
+      "depends": ["libnotify", "libxtst", "nss"]
+    },
+    "AppImage": {
+      "artifactName": "FloatSuite-${version}-${arch}.AppImage"
+    },
+    "mac": {
+      "icon": "favicons/float-512.png",
+      "category": "public.app-category.productivity",
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] }
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "electron/build/entitlements.mac.plist",
+      "entitlementsInherit": "electron/build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "Float Suite ${version}",
+      "artifactName": "FloatSuite-${version}-${arch}.dmg",
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    },
+    "win": {
+      "icon": "favicons/float.ico",
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "publisherName": "Float Suite"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "FloatSuite-Setup-${version}-${arch}.exe",
+      "installerIcon": "favicons/float.ico",
+      "uninstallerIcon": "favicons/float.ico",
+      "shortcutName": "Float Suite"
+    },
+    "portable": {
+      "artifactName": "FloatSuite-Portable-${version}-${arch}.exe"
+    }
+  }
+}

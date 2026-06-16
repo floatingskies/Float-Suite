@@ -72,16 +72,31 @@ float-suite/
 ├── paint.html              ← Paint.web (raster)
 ├── inkling.html            ← Inkling (vector)
 ├── thesis.html             ← Thesis (academic word processor)
-├── shared/
-│   ├── float.css           ← Design tokens, HUD, modals, toasts (shared)
+├── package.json            ← Electron + electron-builder config
+├── .gitignore
+├── README.md               ← This file
+├── .github/
+│   └── workflows/
+│       └── build.yml       ← GitHub Actions: deb/rpm/pacman/AppImage/dmg/exe
+├── electron/               ← Electron wrapper for native packaging
+│   ├── main.js             ← Main process (window, menu, native dialogs)
+│   ├── preload.js          ← Minimal context bridge
+│   └── build/
+│       └── entitlements.mac.plist
+├── shared/                 ← Shared runtime (loaded by all 4 pages)
+│   ├── float.css           ← Design tokens, HUD, modals, toasts
 │   ├── i18n.js             ← 8-language dictionary
 │   ├── float.js            ← HUD engine, theme, shortcuts, modal manager
 │   └── exporters.js        ← PDF / DOCX / ODT exporters (lazy-loaded)
-├── favicons/               ← (optional) per-app favicons
+├── favicons/               ← Neo-brutalist icon set (SVG + PNG + ICO)
+│   ├── float.svg/png/ico   ← Portal
+│   ├── paint.svg/png/ico   ← Paint.web (yellow + paint brush)
+│   ├── inkling.svg/png/ico ← Inkling (pink + Blooper squid)
+│   └── thesis.svg/png/ico  ← Thesis (blue + open book)
 └── README.md               ← This file
 ```
 
-Each app HTML is self-contained — it only depends on `shared/`. You can host the folder anywhere, or open files directly from disk.
+Each app HTML is self-contained — it only depends on `shared/` and `favicons/`. You can host the folder anywhere, or open files directly from disk.
 
 ---
 
@@ -213,6 +228,87 @@ The command will appear in the HUD search and (if it has a `shortcut`) in the sh
 2. Add `<div id="hud-mount"></div>` where you want the menu bar to appear.
 3. Call `Float.mountHUD(spec)` with your menu spec.
 4. Register commands and shortcuts via `Float.registerCommand(...)` and `Float.addShortcut(...)`.
+
+---
+
+## Native desktop builds (Electron)
+
+The suite ships as static HTML/CSS/JS — but it can be wrapped in Electron for native installation on Linux, macOS, and Windows. The repo includes:
+
+- `electron/main.js` — Electron main process. Creates a 1440×900 window, loads the portal, sets a native menu, exposes `window.floatDesktop.isDesktop` to pages.
+- `electron/preload.js` — minimal context-isolated bridge.
+- `package.json` — full `electron-builder` config for all 6 targets.
+- `.github/workflows/build.yml` — CI that builds everything on push to `main`, on PRs, and on `v*` tags. Tag pushes publish a GitHub Release.
+
+### Targets
+
+| Format | Platform | Runner | Notes |
+|--------|----------|--------|-------|
+| `.deb` | Debian / Ubuntu | ubuntu-22.04 | x64 + arm64 |
+| `.rpm` | Fedora / RHEL / SUSE | ubuntu-22.04 | x64 + arm64 |
+| `.pacman` | Arch Linux | ubuntu-22.04 | x64 |
+| `.AppImage` | Universal Linux | ubuntu-22.04 | x64 + arm64 |
+| `.dmg` | macOS | macos-13 | x64 + arm64 (Universal) |
+| `.exe` | Windows | windows-2022 | NSIS installer + portable |
+
+### Build locally
+
+```bash
+# Install Electron + electron-builder
+npm install
+
+# Run as desktop app (dev mode)
+npm start
+
+# Build for your current OS
+npm run dist:linux    # or :mac / :win
+
+# Or build all platforms (cross-compile from any OS, requires extra tooling)
+npm run dist:all
+```
+
+Artifacts land in `electron/dist/`.
+
+### Triggering CI builds
+
+1. **Pull request** → builds all three platforms but does not publish.
+2. **Push to `main`** → builds everything, uploads artifacts to the workflow run (30-day retention).
+3. **Tag push `v5.1.0`** → builds + publishes a GitHub Release with all 6 formats + `SHA256SUMS.txt`.
+
+```bash
+git tag v5.1.0
+git push origin v5.1.0
+```
+
+### Code signing (optional)
+
+The workflow reads these secrets when present and skips signing when absent (so PRs from forks still build):
+
+| Secret | Purpose |
+|--------|---------|
+| `MAC_CERTIFICATE` + `MAC_CERTIFICATE_PASSWORD` | macOS Developer ID certificate (base64 P12) |
+| `APPLE_ID` + `APPLE_APP_SPECIFIC_PASSWORD` + `APPLE_TEAM_ID` | notarization credentials |
+| `WIN_CERTIFICATE` + `WIN_CERTIFICATE_PASSWORD` | Windows Authenticode cert (base64 PFX) |
+
+Without signing, macOS users will need to right-click → Open the first time, and Windows will show a SmartScreen warning.
+
+---
+
+## Favicons
+
+Each app has a neo-brutalist icon in 4 formats (SVG + 5 PNG sizes + multi-res ICO). Source SVGs live in `favicons/`. Re-render all sizes with:
+
+```bash
+python3 scripts/render_favicons.py
+```
+
+The set:
+- **Float Suite** (portal) — composite of the three app glyphs in a 2×2 grid
+- **Paint.web** — yellow background with a black/red paint brush
+- **Inkling** — pink background with a black Blooper-style squid (two big eyes, wavy tentacles)
+- **Thesis** — blue background with an open book (yellow bookmark ribbon)
+
+Each app HTML references all icon variants (SVG → PNG sizes → ICO fallback → Apple touch icon).
 
 ---
 
