@@ -1,9 +1,10 @@
 # Dependencies
 node_modules/
 
-# Electron build output
+# Electron build output (per-app subdirectories)
 electron/dist/
 electron/dist-electron/
+electron/dist/*/
 dist/
 out/
 

@@ -14,8 +14,6 @@ permissions:
   contents: write
 
 # Cancel in-progress runs of the same workflow when a new commit is pushed.
-# This prevents macOS jobs (which have long queue times on free tier) from
-# piling up when you push several commits in quick succession.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,12 +24,16 @@ env:
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────
-  # Linux: .deb · .rpm · .pacman · .AppImage
+  # Linux: .deb · .rpm · .pacman · .AppImage  (3 apps in parallel)
   # ─────────────────────────────────────────────────────────────────────
   build-linux:
-    name: Linux (deb · rpm · pacman · AppImage)
+    name: Linux — ${{ matrix.app }}
     runs-on: ubuntu-22.04
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [paint, inkling, thesis]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,60 +50,42 @@ jobs:
       - name: Install build prerequisites (dpkg, rpm, libarchive for pacman)
         run: |
           sudo apt-get update
-          # dpkg: preinstalled on Ubuntu runners (provides dpkg-deb for .deb)
-          # rpm: provides rpmbuild for .rpm
-          # libarchive-tools: provides bsdtar, which electron-builder uses for .pacman
           sudo apt-get install -y dpkg rpm libarchive-tools
 
-      - name: Build Linux packages
-        # `--publish never` is mandatory: without it electron-builder
-        # auto-detects a GitHub publisher from the `repository` field in
-        # package.json (or the GH_TOKEN env var) and tries to upload the
-        # artifacts to GitHub Releases at the end of the build. That fails
-        # with a 404 because the placeholder repo doesn't exist. We publish
-        # releases separately in the `release` job via softprops/action-gh-release.
-        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --linux deb rpm pacman AppImage --publish never
+      - name: Build ${{ matrix.app }} for Linux
+        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --linux deb rpm pacman AppImage --config apps/${{ matrix.app }}.json --publish never
         env:
-          # GH_TOKEN is intentionally NOT set here — passing it would
-          # re-enable auto-publish detection. We only need it in the
-          # release job.
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
       - name: Verify artifacts
         run: |
-          ls -lh electron/dist/ || true
+          ls -lh electron/dist/${{ matrix.app }}/ || true
           echo "---"
-          find electron/dist -maxdepth 1 -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.pacman" -o -name "*.AppImage" \) -exec ls -lh {} \;
+          find electron/dist/${{ matrix.app }} -maxdepth 1 -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.pacman" -o -name "*.AppImage" \) -exec ls -lh {} \;
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: float-suite-linux
+          name: float-suite-linux-${{ matrix.app }}
           path: |
-            electron/dist/*.deb
-            electron/dist/*.rpm
-            electron/dist/*.pacman
-            electron/dist/*.AppImage
+            electron/dist/${{ matrix.app }}/*.deb
+            electron/dist/${{ matrix.app }}/*.rpm
+            electron/dist/${{ matrix.app }}/*.pacman
+            electron/dist/${{ matrix.app }}/*.AppImage
           if-no-files-found: warn
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────
-  # macOS: .dmg (x64 + arm64)
+  # macOS: .dmg  (3 apps in parallel)
   # ─────────────────────────────────────────────────────────────────────
-  # NOTE: macOS runners on free GitHub plans have limited availability
-  # and 10x billing multiplier. If this job is stuck on "picking a runner"
-  # for a long time, it's likely queued behind other free-tier users.
-  # Upgrade to a paid plan for faster macOS CI, or trigger builds manually
-  # via workflow_dispatch only when needed.
-  # We use macos-15 (Apple Silicon / arm64) — it cross-compiles x64 just
-  # fine. macos-13 (Intel) is being phased out by GitHub.
   build-macos:
-    name: macOS (dmg)
+    name: macOS — ${{ matrix.app }}
     runs-on: macos-15
     timeout-minutes: 45
-    # Map secrets → job-level env so we can branch on them in step `if:`.
-    # The `secrets` context is NOT directly allowed in step `if:` conditions,
-    # but `env.*` is. We use a boolean string ('true' / 'false').
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [paint, inkling, thesis]
     env:
       HAS_MAC_CERT: ${{ secrets.MAC_CERTIFICATE != '' }}
     steps:
@@ -117,25 +101,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build macOS packages (unsigned)
+      - name: Build ${{ matrix.app }} for macOS (unsigned)
         if: ${{ env.HAS_MAC_CERT != 'true' }}
         shell: bash
-        # When no signing certificate is configured we must NOT set CSC_LINK
-        # at all (not even to an empty string). electron-builder treats any
-        # CSC_LINK env var as "please sign", and tries to resolve it as a
-        # file path → "WIN_CSC_LINK is not correct, cannot resolve: <cwd>".
-        # `--publish never` prevents electron-builder from trying to upload
-        # to GitHub Releases during the build step.
         run: |
           unset CSC_LINK WIN_CSC_LINK CSC_KEY_PASSWORD 2>/dev/null || true
           unset APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID 2>/dev/null || true
-          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg --publish never
+          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg --config apps/${{ matrix.app }}.json --publish never
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-      - name: Build macOS packages (signed + notarized)
+      - name: Build ${{ matrix.app }} for macOS (signed + notarized)
         if: ${{ env.HAS_MAC_CERT == 'true' }}
-        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg --publish never
+        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg --config apps/${{ matrix.app }}.json --publish never
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
           CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
@@ -146,29 +124,30 @@ jobs:
 
       - name: Verify artifacts
         run: |
-          ls -lh electron/dist/ || true
+          ls -lh electron/dist/${{ matrix.app }}/ || true
           echo "---"
-          find electron/dist -maxdepth 1 -type f -name "*.dmg" -exec ls -lh {} \;
+          find electron/dist/${{ matrix.app }} -maxdepth 1 -type f -name "*.dmg" -exec ls -lh {} \;
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: float-suite-macos
+          name: float-suite-macos-${{ matrix.app }}
           path: |
-            electron/dist/*.dmg
+            electron/dist/${{ matrix.app }}/*.dmg
           if-no-files-found: warn
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────
-  # Windows: .exe (NSIS installer + portable)
+  # Windows: .exe  (3 apps in parallel)
   # ─────────────────────────────────────────────────────────────────────
   build-windows:
-    name: Windows (exe · portable)
+    name: Windows — ${{ matrix.app }}
     runs-on: windows-2022
     timeout-minutes: 45
-    # Map secrets → job-level env so we can branch on them in step `if:`.
-    # The `secrets` context is NOT directly allowed in step `if:` conditions,
-    # but `env.*` is. We use a boolean string ('true' / 'false').
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [paint, inkling, thesis]
     env:
       HAS_WIN_CERT: ${{ secrets.WIN_CERTIFICATE != '' }}
     steps:
@@ -184,25 +163,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Windows packages (unsigned)
+      - name: Build ${{ matrix.app }} for Windows (unsigned)
         if: ${{ env.HAS_WIN_CERT != 'true' }}
         shell: bash
-        # When no signing certificate is configured we must NOT set CSC_LINK
-        # at all (not even to an empty string). electron-builder treats any
-        # CSC_LINK env var as "please sign", and tries to resolve it as a
-        # file path → "WIN_CSC_LINK is not correct, cannot resolve: <cwd>".
-        # Unsetting the vars + not declaring them in `env:` is enough.
-        # `--publish never` prevents the builder from trying to upload to
-        # GitHub Releases during the build step.
         run: |
           unset CSC_LINK WIN_CSC_LINK CSC_KEY_PASSWORD 2>/dev/null || true
-          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable --publish never
+          npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable --config apps/${{ matrix.app }}.json --publish never
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
 
-      - name: Build Windows packages (signed)
+      - name: Build ${{ matrix.app }} for Windows (signed)
         if: ${{ env.HAS_WIN_CERT == 'true' }}
-        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable --publish never
+        run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable --config apps/${{ matrix.app }}.json --publish never
         env:
           PUPPETEER_SKIP_DOWNLOAD: 'true'
           CSC_LINK: ${{ secrets.WIN_CERTIFICATE }}
@@ -211,22 +183,22 @@ jobs:
       - name: Verify artifacts
         shell: pwsh
         run: |
-          Get-ChildItem electron/dist -File -ErrorAction SilentlyContinue | Format-Table Name, Length
+          Get-ChildItem electron/dist/${{ matrix.app }} -File -ErrorAction SilentlyContinue | Format-Table Name, Length
           Write-Host "---"
-          Get-ChildItem electron/dist -File -Filter *.exe -ErrorAction SilentlyContinue | Format-Table Name, Length
+          Get-ChildItem electron/dist/${{ matrix.app }} -File -Filter *.exe -ErrorAction SilentlyContinue | Format-Table Name, Length
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: float-suite-windows
+          name: float-suite-windows-${{ matrix.app }}
           path: |
-            electron/dist/*.exe
+            electron/dist/${{ matrix.app }}/*.exe
           if-no-files-found: warn
           retention-days: 30
 
   # ─────────────────────────────────────────────────────────────────────
   # Release: when triggered by a tag (v5.1.0 etc.), create a GitHub
-  # release and attach all artifacts.
+  # release and attach all artifacts from all 3 apps × 3 platforms.
   # ─────────────────────────────────────────────────────────────────────
   release:
     name: Publish Release
@@ -244,6 +216,7 @@ jobs:
         run: |
           mkdir -p release
           find artifacts -type f \( -name "*.deb" -o -name "*.rpm" -o -name "*.pacman" -o -name "*.AppImage" -o -name "*.dmg" -o -name "*.exe" \) -exec cp {} release/ \;
+          echo "=== Files to release ==="
           ls -lh release/
 
       - name: Generate checksums

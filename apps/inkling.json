@@ -1,0 +1,141 @@
+{
+  "appId": "io.floatsuite.inkling",
+  "productName": "Inkling",
+  "copyright": "Copyright \u00a9 2025 Arik Closs Novais",
+  "directories": {
+    "output": "electron/dist/inkling",
+    "buildResources": "electron/build"
+  },
+  "files": [
+    "inkling.html",
+    "shared/**/*",
+    "favicons/**/*",
+    "electron/main-inkling.js",
+    "electron/preload.js"
+  ],
+  "publish": null,
+  "linux": {
+    "icon": "favicons/inkling-512.png",
+    "category": "Graphics",
+    "target": [
+      {
+        "target": "deb",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "rpm",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "pacman",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "maintainer": "Arik Closs Novais",
+    "vendor": "Float Suite",
+    "synopsis": "Vector editor",
+    "executableName": "inkling",
+    "desktop": {
+      "Name": "Inkling",
+      "Comment": "Vector editor with pen, shapes, gradients and SVG export",
+      "Categories": "Graphics;2DGraphics;VectorGraphics;",
+      "Keywords": "vector;svg;illustration;logo;design;float;",
+      "StartupWMClass": "Inkling",
+      "Icon": "inkling"
+    }
+  },
+  "deb": {
+    "depends": [
+      "libnotify4",
+      "libxtst6",
+      "libnss3"
+    ],
+    "category": "Graphics"
+  },
+  "rpm": {
+    "depends": [
+      "libnotify",
+      "libXtst",
+      "nss"
+    ],
+    "category": "Graphics"
+  },
+  "mac": {
+    "icon": "favicons/inkling-512.png",
+    "category": "public.app-category.graphics-design",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "electron/build/entitlements.mac.plist",
+    "entitlementsInherit": "electron/build/entitlements.mac.plist"
+  },
+  "dmg": {
+    "title": "Inkling ${version}",
+    "artifactName": "Inkling-${version}-${arch}.dmg",
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  },
+  "win": {
+    "icon": "favicons/inkling.ico",
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "artifactName": "Inkling-Setup-${version}-${arch}.exe",
+    "shortcutName": "Inkling"
+  },
+  "portable": {
+    "artifactName": "Inkling-Portable-${version}-${arch}.exe"
+  },
+  "extraMetadata": {
+    "main": "electron/main-inkling.js"
+  }
+}

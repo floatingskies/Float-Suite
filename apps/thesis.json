@@ -1,0 +1,141 @@
+{
+  "appId": "io.floatsuite.thesis",
+  "productName": "Thesis",
+  "copyright": "Copyright \u00a9 2025 Arik Closs Novais",
+  "directories": {
+    "output": "electron/dist/thesis",
+    "buildResources": "electron/build"
+  },
+  "files": [
+    "thesis.html",
+    "shared/**/*",
+    "favicons/**/*",
+    "electron/main-thesis.js",
+    "electron/preload.js"
+  ],
+  "publish": null,
+  "linux": {
+    "icon": "favicons/thesis-512.png",
+    "category": "Office",
+    "target": [
+      {
+        "target": "deb",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "rpm",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "pacman",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "maintainer": "Arik Closs Novais",
+    "vendor": "Float Suite",
+    "synopsis": "Academic word processor",
+    "executableName": "thesis",
+    "desktop": {
+      "Name": "Thesis",
+      "Comment": "Academic word processor with ABNT, APA and MLA standards",
+      "Categories": "Office;WordProcessor;TextEditor;Education;",
+      "Keywords": "thesis;academic;writing;abnt;apa;mla;float;",
+      "StartupWMClass": "Thesis",
+      "Icon": "thesis"
+    }
+  },
+  "deb": {
+    "depends": [
+      "libnotify4",
+      "libxtst6",
+      "libnss3"
+    ],
+    "category": "Office"
+  },
+  "rpm": {
+    "depends": [
+      "libnotify",
+      "libXtst",
+      "nss"
+    ],
+    "category": "Office"
+  },
+  "mac": {
+    "icon": "favicons/thesis-512.png",
+    "category": "public.app-category.productivity",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "electron/build/entitlements.mac.plist",
+    "entitlementsInherit": "electron/build/entitlements.mac.plist"
+  },
+  "dmg": {
+    "title": "Thesis ${version}",
+    "artifactName": "Thesis-${version}-${arch}.dmg",
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  },
+  "win": {
+    "icon": "favicons/thesis.ico",
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "artifactName": "Thesis-Setup-${version}-${arch}.exe",
+    "shortcutName": "Thesis"
+  },
+  "portable": {
+    "artifactName": "Thesis-Portable-${version}-${arch}.exe"
+  },
+  "extraMetadata": {
+    "main": "electron/main-thesis.js"
+  }
+}

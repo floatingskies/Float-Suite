@@ -1,0 +1,141 @@
+{
+  "appId": "io.floatsuite.paint",
+  "productName": "Paint Web",
+  "copyright": "Copyright \u00a9 2025 Arik Closs Novais",
+  "directories": {
+    "output": "electron/dist/paint",
+    "buildResources": "electron/build"
+  },
+  "files": [
+    "paint.html",
+    "shared/**/*",
+    "favicons/**/*",
+    "electron/main-paint.js",
+    "electron/preload.js"
+  ],
+  "publish": null,
+  "linux": {
+    "icon": "favicons/paint-512.png",
+    "category": "Graphics",
+    "target": [
+      {
+        "target": "deb",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "rpm",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      },
+      {
+        "target": "pacman",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "AppImage",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "maintainer": "Arik Closs Novais",
+    "vendor": "Float Suite",
+    "synopsis": "Raster paint studio",
+    "executableName": "paint-web",
+    "desktop": {
+      "Name": "Paint Web",
+      "Comment": "Raster paint studio with layers, filters and adjustments",
+      "Categories": "Graphics;2DGraphics;RasterGraphics;",
+      "Keywords": "paint;draw;brush;art;creative;float;",
+      "StartupWMClass": "Paint Web",
+      "Icon": "paint-web"
+    }
+  },
+  "deb": {
+    "depends": [
+      "libnotify4",
+      "libxtst6",
+      "libnss3"
+    ],
+    "category": "Graphics"
+  },
+  "rpm": {
+    "depends": [
+      "libnotify",
+      "libXtst",
+      "nss"
+    ],
+    "category": "Graphics"
+  },
+  "mac": {
+    "icon": "favicons/paint-512.png",
+    "category": "public.app-category.graphics-design",
+    "target": [
+      {
+        "target": "dmg",
+        "arch": [
+          "x64",
+          "arm64"
+        ]
+      }
+    ],
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "electron/build/entitlements.mac.plist",
+    "entitlementsInherit": "electron/build/entitlements.mac.plist"
+  },
+  "dmg": {
+    "title": "Paint Web ${version}",
+    "artifactName": "PaintWeb-${version}-${arch}.dmg",
+    "contents": [
+      {
+        "x": 130,
+        "y": 220
+      },
+      {
+        "x": 410,
+        "y": 220,
+        "type": "link",
+        "path": "/Applications"
+      }
+    ]
+  },
+  "win": {
+    "icon": "favicons/paint.ico",
+    "target": [
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "portable",
+        "arch": [
+          "x64"
+        ]
+      }
+    ]
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "artifactName": "PaintWeb-Setup-${version}-${arch}.exe",
+    "shortcutName": "Paint Web"
+  },
+  "portable": {
+    "artifactName": "PaintWeb-Portable-${version}-${arch}.exe"
+  },
+  "extraMetadata": {
+    "main": "electron/main-paint.js"
+  }
+}
