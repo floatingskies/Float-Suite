@@ -37,10 +37,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install build prerequisites (dpkg, rpm, pacman tools)
+      - name: Install build prerequisites (dpkg, rpm, libarchive for pacman)
         run: |
           sudo apt-get update
-          sudo apt-get install -y dpkg rpm bsdtar zstd
+          # dpkg: preinstalled on Ubuntu runners (provides dpkg-deb for .deb)
+          # rpm: provides rpmbuild for .rpm
+          # libarchive-tools: provides bsdtar, which electron-builder uses for .pacman
+          sudo apt-get install -y dpkg rpm libarchive-tools
 
       - name: Build Linux packages
         run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --linux deb rpm pacman AppImage

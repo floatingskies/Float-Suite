@@ -53,15 +53,15 @@
         { "target": "pacman", "arch": ["x64"] },
         { "target": "AppImage", "arch": ["x64", "arm64"] }
       ],
+      "maintainer": "Arik Closs Novais",
+      "vendor": "Float Suite",
+      "synopsis": "Offline-first creative & academic suite",
       "desktop": {
         "Name": "Float Suite",
         "Comment": "Offline-first creative & academic suite",
         "Categories": "Office;Graphics;TextEditor;",
         "Keywords": "paint;vector;thesis;academic;creative;offline;"
-      },
-      "maintainer": "Arik Closs Novais",
-      "vendor": "Float Suite",
-      "synopsis": "Offline-first creative & academic suite"
+      }
     },
     "deb": {
       "depends": ["libnotify4", "libxtst6", "libnss3"],
@@ -70,12 +70,6 @@
     "rpm": {
       "depends": ["libnotify", "libXtst", "nss"],
       "category": "Office"
-    },
-    "pacman": {
-      "depends": ["libnotify", "libxtst", "nss"]
-    },
-    "AppImage": {
-      "artifactName": "FloatSuite-${version}-${arch}.AppImage"
     },
     "mac": {
       "icon": "favicons/float-512.png",
@@ -101,16 +95,13 @@
       "target": [
         { "target": "nsis", "arch": ["x64"] },
         { "target": "portable", "arch": ["x64"] }
-      ],
-      "publisherName": "Float Suite"
+      ]
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "artifactName": "FloatSuite-Setup-${version}-${arch}.exe",
-      "installerIcon": "favicons/float.ico",
-      "uninstallerIcon": "favicons/float.ico",
       "shortcutName": "Float Suite"
     },
     "portable": {
