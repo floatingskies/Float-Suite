@@ -35,9 +35,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
 
-      - name: Install build prerequisites (dpkg-deb, rpm, pacman tools)
+      - name: Install build prerequisites (dpkg, rpm, pacman tools)
         run: |
           sudo apt-get update
           sudo apt-get install -y dpkg rpm bsdtar zstd
@@ -46,6 +46,9 @@ jobs:
         run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --linux deb rpm pacman AppImage
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PUPPETEER_SKIP_DOWNLOAD is set because electron-builder's print-to-PDF
+          # helper isn't needed; this avoids a noisy download step.
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
 
       - name: Verify artifacts
         run: |
@@ -82,13 +85,14 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci || npm install
+        run: npm ci
 
       - name: Build macOS packages
         run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --mac dmg
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Code signing — only enable when secrets are present (PRs fork without them)
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+          # Code signing — only enabled when secrets are present
           CSC_LINK: ${{ secrets.MAC_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -127,21 +131,22 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci; if ($LASTEXITCODE -ne 0) { npm install }
+        run: npm ci
 
       - name: Build Windows packages
         run: npx --yes electron-builder@${{ env.ELECTRON_BUILDER_VERSION }} --win nsis portable
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Code signing — only enabled when secrets are present
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
           CSC_LINK: ${{ secrets.WIN_CERTIFICATE }}
           CSC_KEY_PASSWORD: ${{ secrets.WIN_CERTIFICATE_PASSWORD }}
 
       - name: Verify artifacts
+        shell: pwsh
         run: |
-          Get-ChildItem electron/dist -File | Format-Table Name, Length
+          Get-ChildItem electron/dist -File -ErrorAction SilentlyContinue | Format-Table Name, Length
           Write-Host "---"
-          Get-ChildItem electron/dist -File -Include *.exe | Format-Table Name, Length
+          Get-ChildItem electron/dist -File -Filter *.exe -ErrorAction SilentlyContinue | Format-Table Name, Length
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
